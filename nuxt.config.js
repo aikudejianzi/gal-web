@@ -68,7 +68,43 @@ export default {
               path: '/article/:id',
               component: resolve(__dirname, 'pages/article/article.vue')
             },
-
+            //用户中心与子路由
+            {
+              path: '/user',
+              component: resolve(__dirname, 'pages/user/index.vue'),
+              children: [
+                // 默认子路由为个人资料
+                {
+                  path: '',
+                  component: resolve(__dirname, 'pages/user/components/UserInfo.vue')
+                },
+                // 个人资料
+                {
+                  path: 'profile',
+                  component: resolve(__dirname, 'pages/user/components/UserInfo.vue')
+                },
+                // 账号安全
+                {
+                  path: 'security',
+                  component: resolve(__dirname, 'pages/user/components/AccountSecurity.vue')
+                },
+                // 我的文章
+                {
+                  path: 'articles',
+                  component: resolve(__dirname, 'pages/user/components/MyArticles.vue')
+                },
+                // 我的收藏
+                {
+                  path: 'favorites',
+                  component: resolve(__dirname, 'pages/user/components/FavoriteArticles.vue')
+                },
+                // 我的评论
+                {
+                  path: 'comments',
+                  component: resolve(__dirname, 'pages/user/components/MyComments.vue')
+                }
+              ]
+            }
           ]
         },
         //登录页面
