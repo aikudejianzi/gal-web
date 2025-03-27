@@ -3,15 +3,14 @@
     <!-- 精选文章标题 -->
     <div class="section-header">
       <h2>精选文章</h2>
-      //
-      <el-button type="text" @click="$router.push('/article')">查看更多</el-button>
+      <el-button type="text" @click="$router.push('/articles')">查看更多</el-button>
     </div>
 
     <!-- 精选文章列表 --> 
     <el-row :gutter="20">
       <el-col :span="8" v-for="(article, index) in featuredArticles" :key="index">
         <!-- 文章卡片 -->
-        <el-card class="article-card" shadow="hover" @click.native="$router.push(`/article/${id}`)">
+        <el-card class="article-card" shadow="hover" @click.native="$router.push(`/article/${article.id}`)">
           <!-- 文章图片 --> 
           <div class="article-image" 
                :style="{backgroundImage: article.imageLoaded ? 'url(' + article.cover + ')' : ''}"

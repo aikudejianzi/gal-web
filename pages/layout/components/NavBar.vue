@@ -14,7 +14,7 @@
     <!-- 主页 -->
     <el-menu-item index="/">主页</el-menu-item>
     <!-- 文章 -->
-    <el-menu-item index="/article">文章</el-menu-item>
+    <el-menu-item index="/articles">文章</el-menu-item>
     <!-- 分隔作用, 如果没有这个, 菜单会挤在一起 -->
     <div class="flex-spacer"></div>
     <!-- 登录/注册 -->

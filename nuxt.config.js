@@ -3,7 +3,7 @@ export default {
   head: {
     title: 'gal-web',
     htmlAttrs: {
-      lang: 'en'
+      lang: 'zh-CN'
     },
     meta: [
       { charset: 'utf-8' },
@@ -53,11 +53,21 @@ export default {
           path: '/',
           component: resolve(__dirname, 'pages/layout/'),
           children: [
+            //默认子路由: 主页
             {
-              //默认子路由
               path: '/',
               component: resolve(__dirname, 'pages/home/')
             },
+            //文章列表
+            {
+              path: '/articles',
+              component: resolve(__dirname, 'pages/article/')
+            },
+            //文章详情
+            {
+              path: '/article/:id',
+              component: resolve(__dirname, 'pages/article/article.vue')
+            }
           ]
         },
 
