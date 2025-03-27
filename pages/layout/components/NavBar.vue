@@ -11,13 +11,12 @@
     <div class="logo-container">
       <h1 class="logo">兰州大学GalGame同好会</h1>
     </div>
-    
+    <!-- 主页 -->
     <el-menu-item index="/">主页</el-menu-item>
+    <!-- 文章 -->
     <el-menu-item index="/article">文章</el-menu-item>
-    
     <!-- 分隔作用, 如果没有这个, 菜单会挤在一起 -->
     <div class="flex-spacer"></div>
-    
     <!-- 登录/注册 -->
     <el-menu-item index="/user">
       <i class="el-icon-user"></i>
