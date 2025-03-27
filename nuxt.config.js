@@ -67,9 +67,15 @@ export default {
             {
               path: '/article/:id',
               component: resolve(__dirname, 'pages/article/article.vue')
-            }
+            },
+
           ]
         },
+        //登录页面
+        {
+          path: '/login',
+          component: resolve(__dirname, 'pages/login/index.vue')
+        }
 
       ])
     }
