@@ -7,6 +7,7 @@
     active-text-color="#409EFF"
     :router="true"
   >
+    <!-- 兰州大学GalGame同好会   -->
     <div class="logo-container">
       <h1 class="logo">兰州大学GalGame同好会</h1>
     </div>
