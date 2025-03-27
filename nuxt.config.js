@@ -63,11 +63,17 @@ export default {
               path: '/articles',
               component: resolve(__dirname, 'pages/article/')
             },
+            //文章投稿
+            {
+              path: '/article/submit',
+              component: resolve(__dirname, 'pages/article/submit.vue')
+            },
             //文章详情
             {
               path: '/article/:id',
               component: resolve(__dirname, 'pages/article/article.vue')
             },
+
             //用户中心与子路由
             {
               path: '/user',
