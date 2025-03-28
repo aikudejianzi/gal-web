@@ -35,7 +35,7 @@
           </li>
           <!-- 文章中心 -->
           <li>
-            <nuxt-link to="/article">
+            <nuxt-link to="/articles">
               <i class="el-icon-document"></i> 文章中心
             </nuxt-link>
           </li>
