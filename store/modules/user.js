@@ -48,21 +48,9 @@ const actions = {
   }
 }
 
-const getters = {
-  // 获取用户信息
-  userInfo: state => state.userInfo,
-  // 判断是否已登录
-  isLoggedIn: state => !!state.userInfo,
-  // 获取用户名
-  username: state => state.userInfo ? state.userInfo.username : '',
-  // 获取用户头像
-  avatar: state => state.userInfo ? state.userInfo.avatar : ''
-}
-
 export default {
   namespaced: true,
   state,
   mutations,
-  actions,
-  getters
+  actions
 }
