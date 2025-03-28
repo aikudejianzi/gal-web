@@ -47,6 +47,9 @@
 </template>
 
 <script>
+// 导入API方法
+import { sendCodeAPI, loginAPI } from '@/api/user'
+
 export default {
   name: 'LoginIndex',
   head() {
@@ -103,7 +106,7 @@ export default {
   },
   methods: {
     // 发送验证码
-    sendCode() {
+    async sendCode() {
       // 输入的邮箱不能为空
       if (!this.loginForm.email) {
         this.$message.error('请输入邮箱地址');
@@ -112,8 +115,10 @@ export default {
       // 按钮禁用
       this.isDisabled = true;
       
-      // 模拟API请求
-      setTimeout(() => {
+      try {
+        // 发送验证码请求
+        const res = await sendCodeAPI(this.loginForm.email);
+        
         // 提示发送成功
         this.$message.success('验证码已发送到邮箱');
         // 定时器
@@ -128,40 +133,47 @@ export default {
             this.isDisabled = false;
           }
         }, 1000);
-      }, 500);
+      } catch (error) {
+        // 错误已在请求拦截器中处理
+        this.isDisabled = false;
+      }
     },
 
     // 登录
-    handleLogin() {
-      this.$refs.loginForm.validate(valid => {
+    async handleLogin() {
+      try {
+        const valid = await new Promise((resolve, reject) => {
+          this.$refs.loginForm.validate((isValid) => {
+            resolve(isValid);
+          });
+        });
+        
         if (valid) {
           // 登录加载
           this.loading = true;
           
-          // 模拟API请求
-          setTimeout(() => {
-            // 模拟登录成功
-            const userData = {
-              id: 1,
-              username: 'testUser',
-              email: this.loginForm.email,
-              avatar: '/banner1.png'
-            };
-            
-            // 存储用户信息
-            localStorage.setItem('userInfo', JSON.stringify(userData));
-            
-            // 提示登录成功
-            this.$message.success('登录成功');
-            
-            // 跳转到首页
-            this.$router.push('/');
-            
-            // 登录加载结束
-            this.loading = false;
-          }, 1000);
+          // 发送登录请求
+          const res = await loginAPI({
+            email: this.loginForm.email,
+            code: this.loginForm.code
+          });
+
+          // 存储用户信息到Vuex
+          this.$store.dispatch('user/saveUserInfo', res.data);
+          
+          // 提示登录成功
+          this.$message.success('登录成功');
+          
+          // 跳转到首页
+          this.$router.push('/');
         }
-      });
+      } catch (error) {
+        // 错误已在请求拦截器中处理
+        console.log('登录失败:', error);
+      } finally {
+        // 登录加载结束
+        this.loading = false;
+      }
     }
   },
 

@@ -9,6 +9,8 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^1.0.2",
     "axios": "^1.8.4",
     "core-js": "^3.19.3",
     "element-ui": "^2.15.6",
@@ -16,7 +18,6 @@
     "vue": "^2.6.14",
     "vue-server-renderer": "^2.6.14",
     "vue-template-compiler": "^2.6.14",
-    "webpack": "^4.46.0",
-    "tinymce": "^6.8.2"
+    "webpack": "^4.46.0"
   }
 }

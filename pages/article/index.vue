@@ -205,10 +205,6 @@ export default {
   },
 
   methods: {
-
-    
-
-    
     // 获取文章列表（模拟数据）
     async getArticleList() {
       try {
