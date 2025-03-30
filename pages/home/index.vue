@@ -13,6 +13,7 @@
 import Carousel from './components/Carousel.vue'
 import SelectedArticles from './components/SelectedArticles.vue'
 import { getSelectedArticlesAPI } from '@/api/article'
+import dayjs from 'dayjs'
 export default {
   name: 'HomeIndex',
   components: {
@@ -21,9 +22,12 @@ export default {
   },
   async asyncData(){
     const res = await getSelectedArticlesAPI();
-    console.log(res.data);
+    const data = res.data.map(item => {
+      item.createTime = dayjs(item.createTime).format('YYYY-MM-DD')
+      return item
+    })
     return {
-      selectedArticles: res.data
+      selectedArticles: data
     }
   },
 

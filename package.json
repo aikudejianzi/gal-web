@@ -13,6 +13,7 @@
     "@wangeditor/editor-for-vue": "^1.0.2",
     "axios": "^1.8.4",
     "core-js": "^3.19.3",
+    "dayjs": "^1.11.13",
     "element-ui": "^2.15.6",
     "nuxt": "^2.15.8",
     "vue": "^2.6.14",
