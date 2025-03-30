@@ -17,3 +17,11 @@ export function getArticleListAPI(params) {
     params
   })
 } 
+
+
+export function getSelectedArticlesAPI() {
+  return request({
+    url: '/article/selectedArticles',
+    method: 'get'
+  })
+}

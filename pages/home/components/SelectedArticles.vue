@@ -8,27 +8,25 @@
 
     <!-- 精选文章列表 --> 
     <el-row :gutter="20">
-      <el-col :span="8" v-for="(article, index) in featuredArticles" :key="index">
+      <el-col :span="8" v-for="(article, index) in selectedArticles" :key="index">
         <!-- 文章卡片 -->
         <el-card class="article-card" shadow="hover" @click.native="$router.push(`/article/${article.id}`)">
           <!-- 文章图片 --> 
           <div class="article-image" 
-               :style="{backgroundImage: article.imageLoaded ? 'url(' + article.cover + ')' : ''}"
-               :class="{'image-loading': !article.imageLoaded}">
-            <img :src="article.cover" style="display: none" @load="handleArticleImageLoad(index)">
+               :style="{backgroundImage: `url(${article.cover})`}">
           </div>
           <!-- 文章内容 -->
           <div class="article-content">
             <!-- 文章标题 -->
             <h3>{{ article.title }}</h3>
             <!-- 文章作者和日期 -->
-            <p class="article-meta">
-              <span><i class="el-icon-user"></i>{{ article.author }}</span>
-              <span><i class="el-icon-date"></i>{{ article.date }}</span>
-              <span><i class="el-icon-view"></i>{{ article.views || 0 }}次浏览</span>
-            </p>
+            <div class="article-meta">
+              <span class="meta-item"><i class="el-icon-user"></i>{{ article.username }}</span>
+              <span class="meta-item"><i class="el-icon-date"></i>{{ article.createTime }}</span>
+              <span class="meta-item"><i class="el-icon-view"></i>{{ article.views || 0 }}次浏览</span>
+            </div>
             <!-- 文章摘要 -->
-            <div v-html="article.excerpt"></div>
+            <div class="article-excerpt">{{ article.excerpt }}</div>
           </div>
         </el-card>
       </el-col>
@@ -39,55 +37,12 @@
 <script>
 export default {
     name: 'SelectedArticles',
-    data() {
-        return {
-            // 精选文章列表（假数据）
-            featuredArticles: [
-                {
-                    id: 1,
-                    title: '《ClannadクラナドCLANNAD》：一部让你哭着笑，笑着哭的感人作品',
-                    author: '小明',
-                    date: '2023-03-15',
-                    views: 2541,
-                    cover: '/banner1.png',
-                    excerpt: 'CLANNAD是由Key社制作的一部催泪神作，它的每一个画面、每一段剧情都蕴含着深刻的人生哲理。游戏中的台词"人生中有些重要的，无可替代的东西，只有在失去后才能够了解"将会引发你的深思。',
-                    imageLoaded: false
-                },
-                {
-                    id: 2,
-                    title: '《命运石之门》：穿越时空的科幻冒险',
-                    author: '小红',
-                    date: '2023-04-02',
-                    views: 1856,
-                    cover: '/banner1.png',
-                    excerpt: '《命运石之门》是一部将科学与人文完美结合的作品，以独特的视角探讨了时间旅行的可能性和伦理问题。主角冈部伦太郎的内心挣扎和成长过程让人印象深刻。',
-                    imageLoaded: false
-                },
-                {
-                    id: 3,
-                    title: '《白色相簿2》：青春的痛与美',
-                    author: '小李',
-                    date: '2023-05-21',
-                    views: 1342,
-                    cover: '/banner1.png',
-                    excerpt: '《白色相簿2》以其真实的人物刻画和复杂的情感纠葛，向我们展示了青春期爱情的美好与残酷。在这个故事中，没有真正的坏人，只有各自追求幸福的年轻人。',
-                    imageLoaded: false
-                }
-            ]
-        }
+    props: {
+      selectedArticles: {
+        type: Array,
+        required: true
+      }
     },
-    methods: {
-        // 处理文章图片加载完成
-        handleArticleImageLoad(index) {
-            // 创建新数组，替换原来的数组元素
-            const updatedArticles = [...this.featuredArticles];
-            updatedArticles[index] = {
-                ...updatedArticles[index],
-                imageLoaded: true
-            };
-            this.featuredArticles = updatedArticles;
-        }
-    }
 }
 </script>
 
@@ -199,17 +154,25 @@ export default {
   margin-bottom: 12px;
   display: flex;
   align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
   flex-shrink: 0;
+  white-space: nowrap;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.meta-item {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
 }
 
 .article-meta i {
   font-size: 16px;
   color: #3498db;
+  margin-right: 4px;
 }
 
-div[v-html] {
+.article-excerpt {
   font-size: 15px;
   color: #495057;
   line-height: 1.6;
@@ -220,30 +183,6 @@ div[v-html] {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
-}
-
-.image-loading {
-  background-color: #f5f7fa;
-  position: relative;
-}
-
-.image-loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 30px;
-  height: 30px;
-  margin: -15px 0 0 -15px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #409EFF;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 /* 图片渐入效果 */

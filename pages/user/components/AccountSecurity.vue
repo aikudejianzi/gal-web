@@ -25,14 +25,10 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'AccountSecurity',
-  props: {
-    userInfo: {
-      type: Object,
-      required: true
-    }
-  },
   data() {
     // 验证邮箱格式
     const validateEmail = (rule, value, callback) => {
@@ -69,14 +65,26 @@ export default {
       timer: null,
     }
   },
+  computed: {
+    ...mapGetters(['userInfo'])
+  },
   created() {
     this.initForm();
   },
   methods: {
     // 初始化表单
     initForm() {
+      if (!this.userInfo) {
+        this.securityForm = {
+          currentEmail: '',
+          newEmail: '',
+          code: ''
+        }
+        return
+      }
+      
       this.securityForm = {
-        currentEmail: this.userInfo.email,
+        currentEmail: this.userInfo.email || '',
         newEmail: '',
         code: ''
       }
@@ -128,6 +136,8 @@ export default {
               if (process.client) {
                 localStorage.removeItem('userInfo')
               }
+              // 清除Vuex中的用户信息
+              this.$store.dispatch('logout')
               // 跳转到登录页
               setTimeout(() => {
                 this.$router.push('/login')
@@ -145,6 +155,17 @@ export default {
     // 组件销毁前清除定时器
     if (this.timer) {
       clearInterval(this.timer)
+    }
+  },
+  // 监听Vuex中的用户信息变化
+  watch: {
+    userInfo: {
+      handler(newVal) {
+        if (newVal) {
+          this.initForm()
+        }
+      },
+      immediate: true
     }
   }
 }

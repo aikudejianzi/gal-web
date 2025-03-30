@@ -27,3 +27,32 @@ export function loginAPI(data) {
     data
   })
 }
+
+/**
+ * 更新用户信息
+ * @param {Object} data - 用户信息
+ * @returns {Promise} 请求结果
+ */
+export function updateUserAPI(data) {
+  return request({
+    url: '/user/update',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 上传图片
+ * @param {FormData} formData - 包含图片的FormData对象
+ * @returns {Promise} 请求结果
+ */
+export function uploadImageAPI(formData) {
+  return request({
+    url: '/common/upload',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
