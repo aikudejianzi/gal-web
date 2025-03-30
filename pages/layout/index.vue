@@ -24,12 +24,6 @@ export default {
     components: {
         NavBar,
         Footer
-    },
-    created() {
-        // 在客户端初始化时加载用户状态
-        if (process.client) {
-            this.$store.dispatch('user/initUserInfo')
-        }
     }
 }
 </script>

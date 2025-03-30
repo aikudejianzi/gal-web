@@ -19,7 +19,7 @@
     <div class="flex-spacer"></div>
     
     <!-- 根据登录状态显示不同内容 -->
-    <el-menu-item v-if="!$store.state.user.userInfo" index="/login">
+    <el-menu-item v-if="!userInfo" index="/login">
       <i class="el-icon-user"></i>
       <span>登录/注册</span>
     </el-menu-item>
@@ -27,8 +27,8 @@
     <!-- 已登录显示用户名和下拉菜单 -->
     <el-submenu v-else index="/user">
       <template slot="title">
-        <el-avatar :size="30" :src="$store.state.user.userInfo.avatar"></el-avatar>
-        <span style="margin-left: 5px">{{ $store.state.user.userInfo.username }}</span>
+        <el-avatar :size="30" :src="userInfo.avatar"></el-avatar>
+        <span style="margin-left: 5px">{{ userInfo.username }}</span>
       </template>
       <el-menu-item index="/user">个人中心</el-menu-item>
       <el-menu-item @click="handleLogout">退出登录</el-menu-item>
@@ -42,14 +42,32 @@ export default {
   name: 'NavBar',
   data() {
     return {
-      activeIndex: '/'
+      activeIndex: '/',
+      userInfo: null
+    }
+  },
+  created() {
+    // 从localStorage获取用户信息
+    if (process.client) {
+      const userInfoStr = localStorage.getItem('userInfo')
+      if (userInfoStr) {
+        try {
+          this.userInfo = JSON.parse(userInfoStr)
+        } catch (error) {
+          localStorage.removeItem('userInfo')
+          this.userInfo = null
+        }
+      }
     }
   },
   methods: {
     // 退出登录
     handleLogout() {
-      // 使用Vuex的action进行退出登录
-      this.$store.dispatch('user/logout')
+      // 清除localStorage中的用户信息
+      localStorage.removeItem('userInfo')
+      
+      // 清空当前用户信息
+      this.userInfo = null
       
       // 提示用户已退出
       this.$message.success('已退出登录')

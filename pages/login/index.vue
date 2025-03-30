@@ -158,8 +158,8 @@ export default {
             code: this.loginForm.code
           });
 
-          // 存储用户信息到Vuex
-          this.$store.dispatch('user/saveUserInfo', res.data);
+          // 存储用户信息到localStorage
+          localStorage.setItem('userInfo', JSON.stringify(res.data));
           
           // 提示登录成功
           this.$message.success('登录成功');
