@@ -90,7 +90,7 @@
                   
                 </div>
                 <!-- 文章摘要 -->
-                <p class="article-excerpt">{{ article.content.slice(0, 100) }}</p>
+                <p class="article-excerpt">{{ article.excerpt }}</p>
 
                 <!-- 文章标签 -->
                 <div class="article-tags" v-if="article.tags && article.tags.length > 0">
@@ -126,6 +126,7 @@
 
 <script>
 import { getArticleListAPI } from '@/api/article'
+import dayjs from 'dayjs'
 
 export default {
   data () {
@@ -175,10 +176,6 @@ export default {
   },
 
   methods: {
-
-
-
-
     // 获取文章列表
     async getArticleList () {
       try {
@@ -192,13 +189,11 @@ export default {
           const processedArticles = articles.map(article => ({
             ...article,
             tags: article.tags ? article.tags.split(',').filter(tag => tag) : [],
-            createTime: this.formatDate(article.createTime),
-            content: this.processContent(article.content),
+            createTime: dayjs(article.createTime).format('YYYY-MM-DD'),
             // 将分类数字转换为对应的分类名称
             categoryName: this.getCategoryName(article.category)
           }))
           
-
           this.articleList = processedArticles
         } else {
           this.$message.error(res.msg || '获取文章列表失败')
@@ -218,15 +213,6 @@ export default {
         '3': '讨论交流'
       }
       return categoryMap[category] || '未知分类'
-    },
-
-    // 格式化日期
-    formatDate (dateStr) {
-      const date = new Date(dateStr)
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      return `${year}-${month}-${day}`
     },
 
     // 处理搜索
@@ -256,34 +242,44 @@ export default {
     handleFilter () {
       this.listQuery.page = 1
       this.getArticleList()
-    },
-
-    // 处理文章内容，移除HTML标签和转换HTML实体
-    processContent (content) {
-      return content
-        .replace(/<[^>]+>/g, '') // 移除HTML标签
-        .replace(/&nbsp;/g, ' ') // 替换空格
-        .replace(/&emsp;/g, '    ') // 替换全角空格
-        .replace(/&amp;/g, '&') // 替换&
-        .replace(/&lt;/g, '<') // 替换<
-        .replace(/&gt;/g, '>') // 替换>
-        .replace(/&quot;/g, '"') // 替换"
-        .replace(/&#39;/g, "'") // 替换'
-        .replace(/&ldquo;/g, '"') // 替换中文左双引号
-        .replace(/&rdquo;/g, '"') // 替换中文右双引号
-        .replace(/&hellip;/g, '...') // 替换省略号
-        .replace(/&mdash;/g, '—') // 替换破折号
-        .replace(/\s+/g, ' ') // 合并多个空格
-        .trim() // 移除首尾空格
     }
   }
 }
 </script>
 
-<style>
+<style scoped>
+      /* 应用容器整体样式 */
+      .app {
+        background-color: #f5f7fa;
+        min-height: 100vh;
+      }
+
+      /* 文章区域容器样式 */
+      .article-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* 筛选区域样式 */
+      .filter-container {
+        background-color: #fff;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
+        width: 100%;
+      }
+
       /* 文章列表样式 */
       .article-list {
-        padding: 20px;
+        padding: 20px 30px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
+        width: 90%;
+        margin: 0 auto;
+        margin-bottom: 20px;
       }
       
       /* 文章卡片样式 */
@@ -364,5 +360,28 @@ export default {
         height: 60px;
         padding: 0;
         font-size: 24px;
+      }
+
+      /* 分页容器样式 */
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+        width: 90%;
+        margin: 0 auto;
+        margin-top: 20px;
+      }
+
+      /* 响应式布局 */
+      @media screen and (max-width: 768px) {
+        .article-container {
+          padding: 10px;
+        }
+        
+        .article-list,
+        .pagination-container {
+          width: 95%;
+          padding: 15px;
+        }
       }
     </style>
