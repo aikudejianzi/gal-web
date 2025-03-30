@@ -24,7 +24,7 @@ request.interceptors.request.use(function (config) {
 // 4.响应拦截器
 request.interceptors.response.use(function (res) {
     console.log('响应拦截器拦截到的内容: ', res.data)
-    if(res.data.code === 0 && res.data.msg === 'nologin'){
+    if(res.data.code !== 1 && res.data.msg === 'nologin'){
         // 打印日志
         console.log('用户未登录, 跳转登录页面')
 
@@ -33,7 +33,7 @@ request.interceptors.response.use(function (res) {
 
         // 跳转登录页面
         window.top.location.href = '/login'
-    }else if(res.data.code === 0){
+    }else if(res.data.code !== 1){
         //ELement-ui 打印错误信息
         Message.error(res.data.msg || '操作失败')
         return Promise.reject(new Error(res.data.msg || '操作失败'))

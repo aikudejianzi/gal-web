@@ -128,6 +128,24 @@
 import { getArticleListAPI } from '@/api/article'
 import dayjs from 'dayjs'
 
+// 提取公共方法到组件外部
+const processArticleData = (articles, getCategoryName) => {
+  return articles.map(article => ({
+    ...article,
+    tags: article.tags ? article.tags.split(',').filter(tag => tag) : [],
+    createTime: dayjs(article.createTime).format('YYYY-MM-DD'),
+    categoryName: getCategoryName(article.category)
+  }));
+};
+
+// 分类映射关系，提取为常量
+const CATEGORY_MAP = {
+  '0': '游戏评测',
+  '1': '游戏攻略',
+  '2': '行业新闻',
+  '3': '讨论交流'
+};
+
 export default {
   data () {
     return {
@@ -170,9 +188,47 @@ export default {
     }
   },
 
-  created () {
-    // 获取文章列表
-    this.getArticleList()
+  async asyncData() {
+    try {
+      // 初始查询条件
+      const listQuery = {
+        page: 1,
+        size: 5,
+        keyword: '',
+        category: '',
+        sort: '0'
+      };
+      
+      const res = await getArticleListAPI(listQuery);
+      
+      if (res.code === 1) {
+        const articles = res.data.records;
+        const total = res.data.total;
+        
+        // 获取分类名称的函数
+        const getCategoryName = category => CATEGORY_MAP[category] || '未知分类';
+        
+        // 处理文章数据
+        const processedArticles = processArticleData(articles, getCategoryName);
+        
+        return { 
+          articleList: processedArticles,
+          total: total,
+          listQuery // 返回初始查询条件
+        };
+      } else {
+        return { 
+          articleList: [],
+          total: 0
+        };
+      }
+    } catch (err) {
+      console.error('获取数据失败:', err);
+      return { 
+        articleList: [],
+        total: 0
+      };
+    }
   },
 
   methods: {
@@ -184,17 +240,9 @@ export default {
         if (res.code === 1) {
           const articles = res.data.records
           this.total = res.data.total
-
-          // 处理文章列表数据
-          const processedArticles = articles.map(article => ({
-            ...article,
-            tags: article.tags ? article.tags.split(',').filter(tag => tag) : [],
-            createTime: dayjs(article.createTime).format('YYYY-MM-DD'),
-            // 将分类数字转换为对应的分类名称
-            categoryName: this.getCategoryName(article.category)
-          }))
           
-          this.articleList = processedArticles
+          // 处理文章列表数据，使用共享方法
+          this.articleList = processArticleData(articles, this.getCategoryName);
         } else {
           this.$message.error(res.msg || '获取文章列表失败')
         }
@@ -206,13 +254,7 @@ export default {
 
     // 获取分类名称
     getCategoryName(category) {
-      const categoryMap = {
-        '0': '游戏评测',
-        '1': '游戏攻略',
-        '2': '行业新闻',
-        '3': '讨论交流'
-      }
-      return categoryMap[category] || '未知分类'
+      return CATEGORY_MAP[category] || '未知分类'
     },
 
     // 处理搜索
