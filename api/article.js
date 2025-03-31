@@ -38,15 +38,12 @@ export function getArticleDetailAPI(id) {
   })
 }
 
-/**
- * 获取文章评论列表
- * @param {string|number} articleId - 文章ID
- * @returns {Promise} 请求结果
- */
-export function getArticleCommentsAPI(articleId) {
+// 获取文章评论列表 
+export function getArticleCommentListAPI(articleId) {
   return request({
-    url: `/comment/${articleId}`,
-    method: 'get'
+    url: '/comment/getCommentList',
+    method: 'get',
+    params: { articleId }
   })
 }
 
@@ -59,7 +56,7 @@ export function checkIsFavoriteAPI(articleId, userId) {
   })
 }
 
-// 切换收藏状态 
+// 切换收藏状态 , 设置两张表, 一张是用户收藏表, 一张是文章收藏表  
 export function toggleFavoriteAPI(articleId, userId) {
   return request({
     url: '/favorite/toggleFavorite',

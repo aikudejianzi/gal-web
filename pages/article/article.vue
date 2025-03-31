@@ -11,8 +11,10 @@
     <!-- 评论区 -->
     <ArticleComments 
       :articleId="articleId" 
-      :comments="comments" 
+      :commentList="commentList" 
       :userInfo="userInfo" 
+      @addComment="addComment"
+      @deleteComment="deleteComment"
     />
   </div>
 </template>
@@ -20,13 +22,9 @@
 <script>
 import ArticleContent from './components/ArticleContent.vue'
 import ArticleComments from './components/ArticleComments.vue'
-import { 
-  getArticleDetailAPI, 
-  getArticleCommentsAPI,
-  checkIsFavoriteAPI,
-  toggleFavoriteAPI
-} from '@/api/article'
-
+import { getArticleDetailAPI} from '@/api/article'  
+import { getArticleCommentListAPI, addCommentAPI, deleteCommentAPI } from '@/api/comment'
+import { checkIsFavoriteAPI, toggleFavoriteAPI } from '@/api/favorite'
 export default {
   name: 'Article',
   components: {
@@ -45,7 +43,7 @@ export default {
       // 获取文章详情和评论
       const [articleRes, commentsRes] = await Promise.all([
         getArticleDetailAPI(articleId),
-        getArticleCommentsAPI(articleId)
+        getArticleCommentListAPI(articleId)
       ])
       
       // 检查文章详情响应
@@ -57,12 +55,12 @@ export default {
       const article = articleRes.data
       
       // 获取评论列表
-      const comments = commentsRes.data
+      const commentList = commentsRes.data
       
       return {
         articleId,
         article,
-        comments
+        commentList
       }
     } catch (err) {
       console.error('获取文章详情失败', err)
@@ -114,6 +112,36 @@ export default {
       const res = await getArticleDetailAPI(articleId)
       // 设置文章详情 
       this.article = res.data
+    },
+
+    // 获取文章评论列表
+    async getArticleCommentList() {
+      // 从路径中获取文章id
+      const articleId = this.$route.params.id
+      // 调用getArticleCommentListAPI
+      const res = await getArticleCommentListAPI(articleId)
+      // 设置文章评论列表
+      this.commentList = res.data
+    },
+
+    // 添加评论
+    async addComment(commentContent) {
+      // 从路径中获取文章id
+      const articleId = this.$route.params.id
+      // 调用addCommentAPI 添加评论
+      await addCommentAPI(articleId, this.userInfo.id, commentContent)
+      // 重新获取文章评论列表
+      this.getArticleCommentList()
+    },
+
+    // 删除评论
+    async deleteComment(commentId) {
+      // 从路径中获取文章id
+      const articleId = this.$route.params.id
+      // 调用deleteCommentAPI 删除评论
+      await deleteCommentAPI(commentId)
+      // 重新获取文章评论列表
+      this.getArticleCommentList()
     }
   }
 }

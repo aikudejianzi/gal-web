@@ -2,7 +2,7 @@
   <el-card class="comment-section">
     <div slot="header">
       <span>评论区</span>
-      <span class="comment-count">({{comments.length}}条评论)</span>
+      <span class="comment-count">({{commentList.length}}条评论)</span>
     </div>
 
     <!-- 发表评论 -->
@@ -16,7 +16,7 @@
         show-word-limit>
       </el-input>
       <div style="margin-top: 10px; text-align: right;">
-        <el-button type="primary" @click="submitComment">发表评论</el-button>
+        <el-button type="primary" @click="addComment">发表评论</el-button>
       </div>
     </div>
     <div v-else class="login-tip">
@@ -25,7 +25,7 @@
 
     <!-- 评论列表 -->
     <div class="comment-list">
-      <div v-for="comment in comments" :key="comment.id" class="comment-item">
+      <div v-for="comment in commentList" :key="comment.id" class="comment-item">
         <div class="comment-wrapper">
           <el-avatar :size="40" :src="comment.avatar" fit="cover"></el-avatar>
           <div class="comment-main">
@@ -37,7 +37,7 @@
                 v-if="userInfo.id === comment.userId"
                 type="text" 
                 class="delete-btn"
-                @click="handleDeleteComment(comment.id)">
+                @click="deleteComment(comment.id)">
                 <i class="el-icon-delete"></i>
               </el-button>
             </div>
@@ -46,7 +46,7 @@
         </div>
       </div>
       <!-- 暂无评论 -->
-      <el-empty v-if="comments.length === 0" description="暂无评论"></el-empty>
+      <el-empty v-if="commentList.length === 0" description="暂无评论"></el-empty>
     </div>
   </el-card>
 </template>
@@ -61,7 +61,7 @@ export default {
       type: [String, Number],
       required: true
     },
-    comments: {
+    commentList: {
       type: Array,
       default: () => []
     },
@@ -77,18 +77,20 @@ export default {
   },
   methods: {
     // 提交评论
-    submitComment() {
+    addComment() {
+      // 判断评论内容是否为空, 如果为空, 则提示请输入评论内容 
       if (!this.commentContent.trim()) {
         this.$message.warning('请输入评论内容')
         return
       }
-      
-      this.$emit('submitComment', this.commentContent)
+      // 调用添加评论的接口 
+      this.$emit('addComment', this.commentContent)
+      // 清空评论内容
       this.commentContent = ''
     },
     
     // 处理删除评论
-    handleDeleteComment(commentId) {
+    deleteComment(commentId) {
       this.$emit('deleteComment', commentId)
     },
     
