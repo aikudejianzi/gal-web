@@ -93,8 +93,10 @@
 <script>
 import Vue from 'vue'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import { IToolbarConfig, DomEditor } from '@wangeditor/editor'
 import '@wangeditor/editor/dist/css/style.css'
 import { addArticleAPI, deleteFileAPI } from '@/api/article'
+
 
 export default Vue.extend({
   components: { Editor, Toolbar },
@@ -105,6 +107,10 @@ export default Vue.extend({
       imageList2: [], // 存储最终实际插入(没有被删除的)图片
       toolbarConfig: {
         // 工具栏配置
+        excludeKeys: [
+          'fullScreen',
+          'group-video'
+        ],
       },
       editorConfig: { 
         placeholder: '请输入内容...',
@@ -187,6 +193,22 @@ export default Vue.extend({
   methods: {
     onCreated(editor) {
       this.editor = Object.seal(editor) // 一定要用 Object.seal() ，否则会报错
+      
+      // 安全地获取工具栏配置
+      try {
+        // 延迟执行，确保工具栏已初始化
+        setTimeout(() => {
+          const toolbar = DomEditor.getToolbar(editor)
+          if (toolbar) {
+            const curToolbarConfig = toolbar.getConfig()
+            console.log('工具栏配置:', curToolbarConfig.toolbarKeys) // 当前菜单排序和分组
+          } else {
+            console.log('工具栏尚未初始化')
+          }
+        }, 100)
+      } catch (error) {
+        console.error('获取工具栏配置失败:', error)
+      }
     },
     handleTagClose(tag) {
       this.articleForm.tags.splice(this.articleForm.tags.indexOf(tag), 1);
