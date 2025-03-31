@@ -31,6 +31,7 @@ export default {
 <style scoped>
 .layout-container {
   min-height: 100vh;
+  background-color: #f5f7fa;
   display: flex;
   flex-direction: column;
 }

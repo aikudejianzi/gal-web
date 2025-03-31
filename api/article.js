@@ -38,30 +38,37 @@ export function getArticleDetailAPI(id) {
   })
 }
 
-// 获取文章评论列表 
-export function getArticleCommentListAPI(articleId) {
+/**
+ * 发布文章
+ * @param {Object} data - 文章数据
+ * @param {string} data.title - 文章标题
+ * @param {string} data.category - 文章分类
+ * @param {Array<string>} data.tags - 文章标签
+ * @param {string} data.cover - 文章封面图片URL
+ * @param {string} data.content - 文章内容
+ * @returns {Promise} 请求结果
+ */
+export function addArticleAPI(data) {
   return request({
-    url: '/comment/getCommentList',
-    method: 'get',
-    params: { articleId }
+    url: '/article/addArticle',
+    method: 'post',
+    data
   })
 }
 
-// 检查用户是否收藏了该文章 
-export function checkIsFavoriteAPI(articleId, userId) {
+/**
+ * 删除文件
+ * @param {string} filename - 文件名称
+ * @returns {Promise} 请求结果
+ */
+export function deleteFileAPI(filename) {
   return request({
-    url: '/favorite/checkIsFavorite',
-    method: 'get',
-    params: { articleId, userId }
+    url: `/common/delete/${filename}`,
+    method: 'delete'
   })
 }
 
-// 切换收藏状态 , 设置两张表, 一张是用户收藏表, 一张是文章收藏表  
-export function toggleFavoriteAPI(articleId, userId) {
-  return request({
-    url: '/favorite/toggleFavorite',
-    method: 'put',
-    data: { articleId, userId }
-  })
-}
+
+
+
 

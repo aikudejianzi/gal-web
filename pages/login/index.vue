@@ -7,13 +7,20 @@
         <h1>兰州大学GalGame同好会</h1>
       </div>
       <!-- 登录表单 -->
-      <el-form :model="loginForm" :rules="loginRules" ref="loginForm" class="login-form">
+      <el-form 
+        :model="loginForm" 
+        :rules="loginRules" 
+        ref="loginForm" 
+        class="login-form" 
+        @submit.native.prevent
+      >
         <el-form-item prop="email">
           <!-- 邮箱输入框 -->
           <el-input
             v-model="loginForm.email"
             prefix-icon="el-icon-message"
-            placeholder="请输入邮箱">
+            placeholder="请输入邮箱"
+            @keydown.enter.native="handleEmailEnter">
             <!-- 验证码按钮 -->
             <template slot="append">
               <el-button @click="sendCode" :disabled="isDisabled">
@@ -29,7 +36,8 @@
             v-model="loginForm.code"
             prefix-icon="el-icon-key"
             placeholder="请输入验证码"
-            maxlength="6">
+            maxlength="6"
+            @keydown.enter.native="handleLogin">
           </el-input>
         </el-form-item>
 
@@ -96,6 +104,8 @@ export default {
       loading: false,
       // 按钮禁用
       isDisabled: false,
+      // 是否正在发送验证码请求
+      isSending: false,
       // 按钮文本
       buttonText: '发送验证码',
       // 倒计时
@@ -104,15 +114,72 @@ export default {
       timer: null
     }
   },
+  mounted() {
+    // 页面加载时检查是否有未完成的倒计时
+    if (process.client) {
+      this.checkCountdownState();
+    }
+  },
   methods: {
+    // 检查倒计时状态并恢复
+    checkCountdownState() {
+      const countdownData = localStorage.getItem('countdownData');
+      if (countdownData) {
+        try {
+          const data = JSON.parse(countdownData);
+          const now = new Date().getTime();
+          const endTime = data.endTime;
+          
+          // 如果倒计时未结束，恢复倒计时状态
+          if (now < endTime) {
+            const remainingSeconds = Math.ceil((endTime - now) / 1000);
+            this.count = remainingSeconds;
+            this.isDisabled = true;
+            this.startCountdown(data.email);
+          } else {
+            // 倒计时已结束，清除状态
+            localStorage.removeItem('countdownData');
+          }
+        } catch (error) {
+          console.error('恢复倒计时状态失败:', error);
+          localStorage.removeItem('countdownData');
+        }
+      }
+    },
+    
+    // 开始倒计时
+    startCountdown(email) {
+      this.buttonText = this.count + 's后重新发送';
+      this.timer = setInterval(() => {
+        if (this.count > 0) {
+          this.count--;
+          this.buttonText = this.count + 's后重新发送';
+        } else {
+          clearInterval(this.timer);
+          this.buttonText = '发送验证码';
+          this.isDisabled = false;
+          this.count = 60;
+          // 清除localStorage中的倒计时状态
+          localStorage.removeItem('countdownData');
+        }
+      }, 1000);
+    },
+
     // 发送验证码
     async sendCode() {
+      // 如果按钮已禁用或正在发送请求，直接返回
+      if (this.isDisabled || this.isSending) {
+        return;
+      }
+      
       // 输入的邮箱不能为空
       if (!this.loginForm.email) {
         this.$message.error('请输入邮箱地址');
         return;
       }
-      // 按钮禁用
+      
+      // 设置发送状态和按钮禁用
+      this.isSending = true;
       this.isDisabled = true;
       
       try {
@@ -121,21 +188,25 @@ export default {
         
         // 提示发送成功
         this.$message.success('验证码已发送到邮箱');
-        // 定时器
-        this.timer = setInterval(() => {
-          if (this.count > 0) {
-            this.buttonText = this.count + 's后重新发送';
-            this.count--;
-          } else {
-            clearInterval(this.timer);
-            this.buttonText = '发送验证码';
-            this.count = 60;
-            this.isDisabled = false;
-          }
-        }, 1000);
+        
+        // 保存倒计时状态到localStorage
+        const now = new Date().getTime();
+        const endTime = now + this.count * 1000;
+        const countdownData = {
+          email: this.loginForm.email,
+          startTime: now,
+          endTime: endTime
+        };
+        localStorage.setItem('countdownData', JSON.stringify(countdownData));
+        
+        // 开始倒计时
+        this.startCountdown(this.loginForm.email);
       } catch (error) {
         // 错误已在请求拦截器中处理
         this.isDisabled = false;
+      } finally {
+        // 无论成功失败，都设置发送状态为false
+        this.isSending = false;
       }
     },
 
@@ -161,6 +232,9 @@ export default {
           // 存储用户信息到localStorage
           localStorage.setItem('userInfo', JSON.stringify(res.data));
           
+          // 清除倒计时状态
+          localStorage.removeItem('countdownData');
+          
           // 提示登录成功
           this.$message.success('登录成功');
           
@@ -173,6 +247,14 @@ export default {
       } finally {
         // 登录加载结束
         this.loading = false;
+      }
+    },
+
+    // 处理邮箱输入框的回车事件
+    handleEmailEnter() {
+      // 如果按钮未禁用，则发送验证码
+      if (!this.isDisabled) {
+        this.sendCode();
       }
     }
   },

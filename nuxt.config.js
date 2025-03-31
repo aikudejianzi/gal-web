@@ -37,7 +37,6 @@ export default {
   modules: [
   ],
 
-
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
     transpile: [/^element-ui/],
@@ -54,6 +53,7 @@ export default {
           path: '/',
           component: resolve(__dirname, 'pages/layout/'),
           children: [
+
             //默认子路由: 主页
             {
               path: '/',
@@ -64,6 +64,7 @@ export default {
               path: '/articles',
               component: resolve(__dirname, 'pages/article/')
             },
+            
             //文章投稿
             {
               path: '/article/submit',
@@ -74,6 +75,7 @@ export default {
               path: '/article/:id',
               component: resolve(__dirname, 'pages/article/article.vue')
             },
+
 
             //用户中心与子路由
             {
@@ -119,7 +121,6 @@ export default {
           path: '/login',
           component: resolve(__dirname, 'pages/login/index.vue')
         }
-
       ])
     }
   }
