@@ -29,13 +29,12 @@
           <span>{{article.views}} 阅读</span>
         </div>
 
-        <div class="info-item">
+        <div class="info-item" v-if="userInfo && userInfo.id">
           <el-button 
             type="text" 
-            :class="{'is-favorited': isFavorited}"
-            @click="$emit('favorite')">
-            <i :class="isFavorited ? 'el-icon-star-on' : 'el-icon-star-off'"></i>
-            {{article.favorites || article.likes}} 收藏
+            @click="$emit('toggleFavorite')">
+            <i :class="isFavorite ? 'el-icon-star-on' : 'el-icon-star-off'"></i>
+            {{article.favorites}} 收藏
           </el-button>
         </div>
       </div>
@@ -69,9 +68,13 @@ export default {
       type: Object,
       required: true
     },
-    isFavorited: {
+    isFavorite: {
       type: Boolean,
-      default: false
+      required: true
+    },
+    userInfo: {
+      type: Object,
+      required: true
     }
   },
   computed: {

@@ -3,7 +3,9 @@
     <!-- 文章内容区 -->
     <ArticleContent 
       :article="article"
+      :userInfo="userInfo"
       :isFavorite="isFavorite"
+      @toggleFavorite="toggleFavorite"
     />
 
     <!-- 评论区 -->
@@ -21,7 +23,8 @@ import ArticleComments from './components/ArticleComments.vue'
 import { 
   getArticleDetailAPI, 
   getArticleCommentsAPI,
-  checkIsFavoriteAPI
+  checkIsFavoriteAPI,
+  toggleFavoriteAPI
 } from '@/api/article'
 
 export default {
@@ -39,11 +42,10 @@ export default {
     try {
       const articleId = params.id
       
-      // 并行请求
-      const [articleRes, commentsRes, isFavoriteRes] = await Promise.all([
+      // 获取文章详情和评论
+      const [articleRes, commentsRes] = await Promise.all([
         getArticleDetailAPI(articleId),
-        getArticleCommentsAPI(articleId),
-        checkIsFavoriteAPI(articleId)
+        getArticleCommentsAPI(articleId)
       ])
       
       // 检查文章详情响应
@@ -56,22 +58,14 @@ export default {
       
       // 获取评论列表
       const comments = commentsRes.data
-
-      //发送请求查看当前文章用户是否已经收藏了
-      const isFavorite = false
-      if(isFavoriteRes.data === true){
-        isFavorite = true
-      }
-
-
       
       return {
         articleId,
         article,
-        comments,
-        isFavorite
+        comments
       }
     } catch (err) {
+      console.error('获取文章详情失败', err)
       return error({ statusCode: 404, message: '您访问的页面不存在' })
     }
   },
@@ -79,25 +73,48 @@ export default {
     return {
       // 用户信息
       userInfo: {},
-      //是否收藏
       isFavorite: false
     }
   },
   async mounted() {
-    // 更新页面标题
-    this.$nuxt.$options.head.title = `${this.article.title} - 兰州大学GalGame同好会`
-    
-    // 获取用户信息
+    //从localStorage中获取用户信息
     const userInfoStr = localStorage.getItem('userInfo')
+
+    //用户已登录
     if (userInfoStr) {
       this.userInfo = JSON.parse(userInfoStr)
+      //从路径中获取文章id
+      const articleId = this.$route.params.id
+      //检查用户是否收藏了该文章
+      const res = await checkIsFavoriteAPI(articleId, this.userInfo.id)
+      this.isFavorite = res.data
     }
 
 
 
   },
   methods: {
+    // 切换收藏状态
+    async toggleFavorite() {
+      // 从路径中获取文章id 
+      const articleId = this.$route.params.id
+      // 调用toggleFavoriteAPI
+      const res = await toggleFavoriteAPI(articleId, this.userInfo.id)
+      // 设置收藏状态 
+      this.isFavorite = res.data
+      // 获取文章详情, 因为文章收藏数量改变了, 所以需要重新获取文章详情 
+      this.getArticleDetail()
+    },
 
+    // 获取文章详情
+    async getArticleDetail() {
+      // 从路径中获取文章id
+      const articleId = this.$route.params.id
+      // 调用getArticleDetailAPI
+      const res = await getArticleDetailAPI(articleId)
+      // 设置文章详情 
+      this.article = res.data
+    }
   }
 }
 </script>

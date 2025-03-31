@@ -50,40 +50,21 @@ export function getArticleCommentsAPI(articleId) {
   })
 }
 
-/**
- * 检查用户是否已收藏文章
- * @param {string|number} articleId - 文章ID
- * @returns {Promise} 请求结果
- */
-export function checkIsFavoriteAPI(articleId) {
+// 检查用户是否收藏了该文章 
+export function checkIsFavoriteAPI(articleId, userId) {
   return request({
-    url: `/favorite/check/${articleId}`,
-    method: 'get'
+    url: '/favorite/checkIsFavorite',
+    method: 'get',
+    params: { articleId, userId }
   })
 }
 
-/**
- * 收藏文章
- * @param {string|number} articleId - 文章ID
- * @returns {Promise} 请求结果
- */
-export function addFavoriteAPI(articleId) {
+// 切换收藏状态 
+export function toggleFavoriteAPI(articleId, userId) {
   return request({
-    url: '/favorite/add',
-    method: 'post',
-    data: { articleId }
+    url: '/favorite/toggleFavorite',
+    method: 'put',
+    data: { articleId, userId }
   })
 }
 
-/**
- * 取消收藏文章
- * @param {string|number} articleId - 文章ID
- * @returns {Promise} 请求结果
- */
-export function cancelFavoriteAPI(articleId) {
-  return request({
-    url: '/favorite/cancel',
-    method: 'post',
-    data: { articleId }
-  })
-}
