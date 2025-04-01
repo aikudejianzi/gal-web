@@ -70,6 +70,11 @@ export default {
               path: '/article/submit',
               component: resolve(__dirname, 'pages/article/submit.vue')
             },
+            //文章编辑
+            {
+              path: '/article/edit/:id',
+              component: resolve(__dirname, 'pages/article/submit.vue')
+            },
             //文章详情
             {
               path: '/article/:id',

@@ -110,7 +110,7 @@ export default {
             comments: 45
           },
           {
-            id: 3,
+            id: 60,
             title: '《Angel Beats!》：青春与遗憾的故事',
             createTime: this.formatDate(new Date().getTime() - 7 * 24 * 60 * 60 * 1000),
             views: 423,

@@ -68,6 +68,25 @@ export function deleteFileAPI(filename) {
   })
 }
 
+/**
+ * 更新文章
+ * @param {Object} data - 文章数据
+ * @param {number|string} data.id - 文章ID
+ * @param {string} data.title - 文章标题
+ * @param {string} data.category - 文章分类
+ * @param {string} data.tags - 文章标签，逗号分隔的字符串
+ * @param {string} data.cover - 文章封面图片URL
+ * @param {string} data.content - 文章内容
+ * @returns {Promise} 请求结果
+ */
+export function updateArticleAPI(data) {
+  return request({
+    url: `/article/updateArticle`,
+    method: 'put',
+    data
+  })
+}
+
 
 
 

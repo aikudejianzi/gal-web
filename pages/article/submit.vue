@@ -1,6 +1,7 @@
 <template>
   <div class="submit-container">
     <el-form :model="articleForm" :rules="articleRules" ref="articleForm" label-width="80px">
+      <h2 class="page-title">{{ pageTitle }}</h2>
       <!-- 标题 -->
       <el-form-item label="标题" prop="title">
         <el-input v-model="articleForm.title" placeholder="请输入文章标题"></el-input>
@@ -65,25 +66,29 @@
       <!-- 内容 -->
       <el-form-item label="内容" prop="content">
         <div class="editor-container">
-          <Toolbar
-              style="border-bottom: 1px solid #ccc"
-              :editor="editor"
-              :defaultConfig="toolbarConfig"
-              :mode="mode"
-          />
-          <Editor
-              class="editor-content"
-              v-model="articleForm.content"
-              :defaultConfig="editorConfig"
-              :mode="mode"
-              @onCreated="onCreated"
-          />
+          <client-only>
+            <Toolbar
+                style="border-bottom: 1px solid #ccc"
+                :editor="editor"
+                :defaultConfig="toolbarConfig"
+                :mode="mode"
+            />
+            <Editor
+                class="editor-content"
+                v-model="articleForm.content"
+                :defaultConfig="editorConfig"
+                :mode="mode"
+                @onCreated="onCreated"
+            />
+          </client-only>
         </div>
       </el-form-item>
       
       <!-- 提交按钮 -->
       <el-form-item>
-        <el-button type="primary" @click="submitArticle" :loading="submitting">发布文章</el-button>
+        <el-button type="primary" @click="submitArticle" :loading="submitting">
+          {{ isEditMode ? '更新文章' : '发布文章' }}
+        </el-button>
         <el-button @click="resetForm">重置</el-button>
       </el-form-item>
     </el-form>
@@ -92,24 +97,51 @@
 
 <script>
 import Vue from 'vue'
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { IToolbarConfig, DomEditor } from '@wangeditor/editor'
-import '@wangeditor/editor/dist/css/style.css'
-import { addArticleAPI, deleteFileAPI } from '@/api/article'
+import { addArticleAPI, deleteFileAPI, getArticleDetailAPI, updateArticleAPI } from '@/api/article'
 
+// 在客户端才导入编辑器
+let Editor, Toolbar, IToolbarConfig, DomEditor
+if (process.client) {
+  const editorModule = require('@wangeditor/editor-for-vue')
+  const editorConfigModule = require('@wangeditor/editor')
+  Editor = editorModule.Editor
+  Toolbar = editorModule.Toolbar
+  IToolbarConfig = editorConfigModule.IToolbarConfig
+  DomEditor = editorConfigModule.DomEditor
+  require('@wangeditor/editor/dist/css/style.css')
+}
 
 export default Vue.extend({
-  components: { Editor, Toolbar },
+  components: { 
+    Editor: process.client ? require('@wangeditor/editor-for-vue').Editor : null,
+    Toolbar: process.client ? require('@wangeditor/editor-for-vue').Toolbar : null
+  },
+  
+  // 添加页面守卫，检查登录状态
+  beforeCreate() {
+    if (process.client) {
+      // 检查登录状态 
+      const userInfo = localStorage.getItem('userInfo')
+      if (!userInfo) {
+        // 如果未登录，则跳转到登录页面 
+        this.$message.error('请先登录')
+        this.$router.push('/login')
+      }
+    }
+  },
+  
   data() {
     return {
       editor: null,
       imageList1: [], // 存储插入的图片
       imageList2: [], // 存储最终实际插入(没有被删除的)图片
+      isEditMode: false, // 是否是编辑模式
+      articleId: null, // 文章ID (编辑模式使用)
       toolbarConfig: {
-        // 工具栏配置
+        // 工具栏排除配置
         excludeKeys: [
-          'fullScreen',
-          'group-video'
+          'fullScreen', // 排除全屏功能
+          'group-video' // 排除视频上传功能
         ],
       },
       editorConfig: { 
@@ -190,22 +222,76 @@ export default Vue.extend({
       inputTagValue: ''
     }
   },
+  computed: {
+    // 页面标题，根据模式不同显示不同标题
+    pageTitle() {
+      return this.isEditMode ? '编辑文章' : '发布文章';
+    }
+  },
+  async created() {
+    // 检查当前路由，判断是投稿模式还是编辑模式
+    const path = this.$route.path;
+    if (path.includes('/article/edit/')) {
+      this.isEditMode = true;
+      this.articleId = this.$route.params.id;
+      
+      // 获取文章详情
+      if (process.client) {
+        await this.getArticleDetail();
+      }
+    }
+  },
   methods: {
+    // 获取文章详情（编辑模式使用）
+    async getArticleDetail() {
+      try {
+        const res = await getArticleDetailAPI(this.articleId);
+        
+        if (res && res.code === 1 && res.data) {
+          const article = res.data;
+          
+          // 填充表单数据
+          this.articleForm.title = article.title;
+          this.articleForm.category = article.category;
+          this.articleForm.cover = article.cover;
+          this.articleForm.content = article.content;
+          
+          // 处理标签 (将逗号分隔的字符串转为数组)
+          if (article.tags) {
+            this.articleForm.tags = article.tags.split(',').filter(tag => tag.trim());
+          }
+          
+          // 记录当前图片列表，用于跟踪编辑过程中的图片变化
+          const imgReg = /<img[^>]+src="([^"]+)"[^>]*>/g;
+          let match;
+          while ((match = imgReg.exec(article.content)) !== null) {
+            this.imageList1.push(match[1]);
+            this.imageList2.push(match[1]);
+          }
+          
+        } else {
+          this.$message.error('获取文章详情失败');
+          // 失败后返回列表页
+          this.$router.push('/articles');
+        }
+      } catch (error) {
+        console.error('获取文章详情失败:', error);
+        this.$message.error('获取文章详情失败，请稍后再试');
+        this.$router.push('/articles');
+      }
+    },
     onCreated(editor) {
       this.editor = Object.seal(editor) // 一定要用 Object.seal() ，否则会报错
       
-      // 安全地获取工具栏配置
+      // 获取工具栏配置
       try {
-        // 延迟执行，确保工具栏已初始化
-        setTimeout(() => {
+        if (DomEditor) {
           const toolbar = DomEditor.getToolbar(editor)
           if (toolbar) {
             const curToolbarConfig = toolbar.getConfig()
             console.log('工具栏配置:', curToolbarConfig.toolbarKeys) // 当前菜单排序和分组
-          } else {
-            console.log('工具栏尚未初始化')
           }
-        }, 100)
+        }
       } catch (error) {
         console.error('获取工具栏配置失败:', error)
       }
@@ -286,41 +372,60 @@ export default Vue.extend({
             }
 
             // 获取实际使用的图片
-            this.imageList2 = this.editor.getElemsByType('image')
-                      
-            // 获取上传到服务器, 但没被使用的图片
-            const unusedImageList = this.imageList1.filter(item => !this.imageList2.includes(item))
-          
-            // 删除未使用的图片
-            if (unusedImageList.length > 0) {
-              console.log('删除未使用的图片:', unusedImageList);
-              // 循环删除每张未使用的图片
-              unusedImageList.forEach(imageUrl => {
-                  // 调用删除API
-                  deleteFileAPI(imageUrl.substring(imageUrl.lastIndexOf('/') + 1))
+            if (this.editor) {
+              this.imageList2 = this.editor.getElemsByType('image').map(item => {
+                const imgElem = item.children[0];
+                return imgElem.src;
               });
+              
+              // 获取上传到服务器, 但没被使用的图片
+              const unusedImageList = this.imageList1.filter(item => !this.imageList2.includes(item))
+            
+              // 删除未使用的图片
+              if (unusedImageList.length > 0) {
+                console.log('删除未使用的图片:', unusedImageList);
+                // 循环删除每张未使用的图片
+                unusedImageList.forEach(imageUrl => {
+                  try {
+                    // 从URL中提取文件名
+                    const filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+                    // 调用删除API
+                    deleteFileAPI(filename);
+                  } catch (error) {
+                    console.error('删除未使用图片失败:', error);
+                  }
+                });
+              }
             }
 
-            // 调用API提交文章
-            const res = await addArticleAPI(submitData)
+            let res;
+            if (this.isEditMode) {
+              // 编辑模式：更新文章
+              submitData.id = this.articleId;
+              res = await updateArticleAPI(submitData);
+            } else {
+              // 投稿模式：新增文章
+              res = await addArticleAPI(submitData);
+            }
             
             if (res.code === 1) {
-              // 发布文章成功
-              this.$message.success('文章发布成功')
+              // 操作成功
+              this.$message.success(this.isEditMode ? '文章更新成功' : '文章发布成功');
               // 跳转到文章列表页
-              this.$router.push('/articles')
+              this.$router.push('/articles');
             } else {
-              this.$message.error(res.msg || '文章发布失败')
+              this.$message.error(res.msg || (this.isEditMode ? '文章更新失败' : '文章发布失败'));
             }
           } catch (error) {
-            this.$message.error('文章发布失败，请稍后再试')
+            console.error(this.isEditMode ? '更新文章失败:' : '发布文章失败:', error);
+            this.$message.error(this.isEditMode ? '更新文章失败，请稍后再试' : '发布文章失败，请稍后再试');
           } finally {
-            this.submitting = false
+            this.submitting = false;
           }
         } else {
-          return false
+          return false;
         }
-      })
+      });
     },
     resetForm() {
       // 删除已上传的封面图片
@@ -514,5 +619,11 @@ export default Vue.extend({
 
 .delete-icon:hover {
   background-color: rgba(0, 0, 0, 0.7);
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #409EFF;
 }
 </style>
