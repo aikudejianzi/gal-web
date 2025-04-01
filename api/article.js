@@ -87,6 +87,22 @@ export function updateArticleAPI(data) {
   })
 }
 
+/**
+ * 上传并解析Word文档
+ * @param {FormData} formData - 包含Word文档的表单数据
+ * @returns {Promise} 请求结果 - 返回解析后的HTML内容
+ */
+export function parseWordDocAPI(formData) {
+  return request({
+    url: '/common/parseWord',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
 
 
 

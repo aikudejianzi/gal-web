@@ -66,6 +66,20 @@
       <!-- 内容 -->
       <el-form-item label="内容" prop="content">
         <div class="editor-container">
+          <div class="editor-tools" v-if="!isEditMode">
+            <el-upload
+              class="word-uploader"
+              action="javascript:void(0)"
+              :http-request="uploadWordDoc"
+              :show-file-list="false"
+              accept=".doc,.docx"
+            >
+              <el-button size="small" type="primary" icon="el-icon-upload">导入Word文档</el-button>
+            </el-upload>
+            <el-tooltip effect="dark" content="将Word文档内容导入编辑器，支持图片" placement="top">
+              <i class="el-icon-question"></i>
+            </el-tooltip>
+          </div>
           <client-only>
             <Toolbar
                 style="border-bottom: 1px solid #ccc"
@@ -97,7 +111,7 @@
 
 <script>
 import Vue from 'vue'
-import { addArticleAPI, deleteFileAPI, getArticleDetailAPI, updateArticleAPI } from '@/api/article'
+import { addArticleAPI, deleteFileAPI, getArticleDetailAPI, updateArticleAPI, parseWordDocAPI } from '@/api/article'
 
 // 在客户端才导入编辑器
 let Editor, Toolbar, IToolbarConfig, DomEditor
@@ -454,7 +468,86 @@ export default Vue.extend({
       this.articleForm.tags = [];
       this.articleForm.cover = '';
       this.articleForm.content = '<p>请输入文章内容...</p>';
-    }
+    },
+    // 上传并解析Word文档
+    async uploadWordDoc(options) {
+      const loading = this.$loading({
+        lock: true,
+        text: '正在解析Word文档...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(255, 255, 255, 0.7)'
+      });
+      
+      try {
+        // 准备表单数据
+        const formData = new FormData()
+        formData.append('file', options.file)
+        
+        // 调用API解析Word文档
+        const res = await parseWordDocAPI(formData)
+        
+        if (res && res.code === 1 && res.data) {
+          // 解析成功，将HTML内容设置到编辑器
+          if (this.editor) {
+            // 先清空编辑器内容
+            this.editor.clear();
+            
+            // 设置新的HTML内容（这样可以保证图片正确加载）
+            this.editor.dangerouslyInsertHtml(res.data);
+            
+            // 更新表单值
+            this.articleForm.content = this.editor.getHtml();
+            
+            // 从内容中提取图片URL添加到imageList1中
+            const imgReg = /<img[^>]+src="([^"]+)"[^>]*>/g;
+            let match;
+            const imageUrls = [];
+            
+            while ((match = imgReg.exec(res.data)) !== null) {
+              const imageUrl = match[1];
+              if (!this.imageList1.includes(imageUrl)) {
+                this.imageList1.push(imageUrl);
+                imageUrls.push(imageUrl);
+              }
+            }
+            
+            if (imageUrls.length > 0) {
+              console.log('Word文档中的图片已提取:', imageUrls);
+            }
+          } else {
+            // 编辑器未初始化，直接设置内容
+            this.articleForm.content = res.data;
+          }
+          
+          // 从标题中提取文章标题
+          this.tryExtractTitle(res.data);
+          
+          this.$message.success('Word文档解析成功');
+        } else {
+          this.$message.error(res.msg || 'Word文档解析失败');
+        }
+      } catch (error) {
+        console.error('解析Word文档失败:', error);
+        this.$message.error('解析Word文档失败，请稍后再试');
+      } finally {
+        loading.close();
+      }
+    },
+    
+    // 尝试从HTML内容中提取标题
+    tryExtractTitle(htmlContent) {
+      if (!this.articleForm.title || this.articleForm.title === '') {
+        // 尝试从h1标签提取标题
+        const titleMatch = /<h1[^>]*>(.*?)<\/h1>/i.exec(htmlContent);
+        if (titleMatch && titleMatch[1]) {
+          // 去除HTML标签
+          const title = titleMatch[1].replace(/<\/?[^>]+(>|$)/g, "").trim();
+          if (title) {
+            this.articleForm.title = title;
+          }
+        }
+      }
+    },
   },
   beforeDestroy() {
     const editor = this.editor
@@ -506,6 +599,25 @@ export default Vue.extend({
 .editor-content {
   flex: 1;
   overflow-y: auto;
+}
+
+/* Word文档导入工具栏 */
+.editor-tools {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f5f7fa;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.editor-tools .el-tooltip {
+  margin-left: 8px;
+  cursor: pointer;
+  color: #909399;
+}
+
+.word-uploader {
+  margin-right: 10px;
 }
 
 /* 让表单项也居中对齐 */
