@@ -47,6 +47,8 @@
 </template>
 
 <script>
+import { checkAuthAPI } from '@/api/user'
+
 export default {
   name: 'UserIndex',
   head() {
@@ -70,27 +72,36 @@ export default {
       return path
     }
   },
-  created() {
-    // 获取用户信息
+  async created() {
+    // 先从localStorage中获取用户信息
     if (process.client) {
       const userInfoStr = localStorage.getItem('userInfo')
-
       if (userInfoStr) {
         this.userInfo = JSON.parse(userInfoStr)
-      } else {
-        // 未登录跳转到登录页
-        this.$message.warning('请先登录')
-        this.$router.push('/login')
       }
-    } else {
-      // 服务端渲染时设置默认用户信息为空
-      this.userInfo = null
+    }
+    
+    // 再通过API校验并更新用户信息
+    try {
+      const res = await checkAuthAPI()
+      if (res.code === 1 && res.data) {
+        // 用服务端最新数据更新用户信息
+        this.userInfo = res.data
+        // 更新localStorage
+        if (process.client) {
+          localStorage.setItem('userInfo', JSON.stringify(res.data))
+        }
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      // 错误处理已在响应拦截器中完成
     }
   },
   methods: {
     // 处理用户信息更新
     handleUserInfoUpdated(updatedUserInfo) {
       this.userInfo = updatedUserInfo
+      // 更新localStorage
       if (process.client) {
         localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
       }

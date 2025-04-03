@@ -131,19 +131,6 @@ export default Vue.extend({
     Toolbar: process.client ? require('@wangeditor/editor-for-vue').Toolbar : null
   },
   
-  // 添加页面守卫，检查登录状态
-  beforeCreate() {
-    if (process.client) {
-      // 检查登录状态 
-      const userInfo = localStorage.getItem('userInfo')
-      if (!userInfo) {
-        // 如果未登录，则跳转到登录页面 
-        this.$message.error('请先登录')
-        this.$router.push('/login')
-      }
-    }
-  },
-  
   data() {
     return {
       editor: null,
@@ -368,19 +355,9 @@ export default Vue.extend({
         if (valid) {
           this.submitting = true;
           try {
-            // 从localStorage获取用户信息
-            const userInfoStr = localStorage.getItem('userInfo')
-            if (!userInfoStr) {
-              this.$message.error('请先登录')
-              return
-            }
-            
-            const userInfo = JSON.parse(userInfoStr)
-            
             // 准备提交数据
             const submitData = {
               ...this.articleForm,
-              userId: userInfo.id,
               // 将标签数组转换为字符串
               tags: this.articleForm.tags.join(',')
             }

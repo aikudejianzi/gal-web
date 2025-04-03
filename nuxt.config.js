@@ -37,12 +37,9 @@ export default {
   modules: [
   ],
 
-  // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {
-    transpile: [/^element-ui/],
-  },
-
+  // 全局中间件
   router: {
+    middleware: ['auth'],
     extendRoutes(routes, resolve) {
       //1.清除Nuxt默认生成的路由
       routes.splice(0)
@@ -97,11 +94,6 @@ export default {
                   path: 'profile',
                   component: resolve(__dirname, 'pages/user/components/UserInfo.vue')
                 },
-                // 账号安全
-                {
-                  path: 'security',
-                  component: resolve(__dirname, 'pages/user/components/AccountSecurity.vue')
-                },
                 // 我的文章
                 {
                   path: 'articles',
@@ -128,5 +120,10 @@ export default {
         }
       ])
     }
+  },
+
+  // Build Configuration: https://go.nuxtjs.dev/config-build
+  build: {
+    transpile: [/^element-ui/],
   }
 }

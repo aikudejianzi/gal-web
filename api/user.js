@@ -1,6 +1,17 @@
 import request from '@/utils/request'
 
 /**
+ * 检查用户登录状态
+ * @returns {Promise} 请求结果
+ */
+export function checkAuthAPI() {
+  return request({
+    url: '/user/checkAuth',
+    method: 'get'
+  })
+}
+
+/**
  * 发送验证码
  * @param {string} email - 邮箱地址
  * @returns {Promise} 请求结果

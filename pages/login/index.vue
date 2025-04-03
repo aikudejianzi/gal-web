@@ -229,9 +229,11 @@ export default {
             code: this.loginForm.code
           });
 
-          // 存储用户信息到localStorage
-          localStorage.setItem('userInfo', JSON.stringify(res.data));
-          
+          // 将用户信息存储到localStorage
+          if (res.data) {
+            localStorage.setItem('userInfo', JSON.stringify(res.data));
+          }
+
           // 清除倒计时状态
           localStorage.removeItem('countdownData');
           
