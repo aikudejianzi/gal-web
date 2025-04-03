@@ -112,6 +112,7 @@
 <script>
 import Vue from 'vue'
 import { addArticleAPI, deleteFileAPI, getArticleDetailAPI, updateArticleAPI, parseWordDocAPI } from '@/api/article'
+import { getCurrentUserAPI } from '@/api/user'
 
 // 在客户端才导入编辑器
 let Editor, Toolbar, IToolbarConfig, DomEditor
@@ -131,6 +132,14 @@ export default Vue.extend({
     Toolbar: process.client ? require('@wangeditor/editor-for-vue').Toolbar : null
   },
   
+  // 替换页面守卫逻辑，使用fetch钩子
+  async fetch() {
+    // 检查登录状态
+    if (process.client) {
+      await this.checkUserAuth()
+    }
+  },
+  
   data() {
     return {
       editor: null,
@@ -138,6 +147,7 @@ export default Vue.extend({
       imageList2: [], // 存储最终实际插入(没有被删除的)图片
       isEditMode: false, // 是否是编辑模式
       articleId: null, // 文章ID (编辑模式使用)
+      userInfo: null, // 用户信息
       toolbarConfig: {
         // 工具栏排除配置
         excludeKeys: [
@@ -238,8 +248,14 @@ export default Vue.extend({
       
       // 获取文章详情
       if (process.client) {
+        // 先检查用户登录状态
+        await this.checkUserAuth();
+        // 获取文章详情
         await this.getArticleDetail();
       }
+    } else if (process.client) {
+      // 投稿模式也需要检查登录状态
+      await this.checkUserAuth();
     }
   },
   methods: {
@@ -355,9 +371,21 @@ export default Vue.extend({
         if (valid) {
           this.submitting = true;
           try {
+            // 检查用户登录状态
+            if (!this.userInfo) {
+              // 尝试重新获取用户信息
+              await this.checkUserAuth();
+              if (!this.userInfo) {
+                this.$message.error('请先登录');
+                this.$router.push('/login');
+                return;
+              }
+            }
+            
             // 准备提交数据
             const submitData = {
               ...this.articleForm,
+              userId: this.userInfo.id,
               // 将标签数组转换为字符串
               tags: this.articleForm.tags.join(',')
             }
@@ -523,6 +551,22 @@ export default Vue.extend({
             this.articleForm.title = title;
           }
         }
+      }
+    },
+    // 检查用户登录状态
+    async checkUserAuth() {
+      try {
+        const res = await getCurrentUserAPI();
+        if (res && res.code === 1 && res.data) {
+          this.userInfo = res.data;
+        } else {
+          this.$message.error('获取用户信息失败');
+          this.$router.push('/login');
+        }
+      } catch (error) {
+        console.error('检查用户登录状态失败:', error);
+        this.$message.error('检查用户登录状态失败，请稍后再试');
+        this.$router.push('/login');
       }
     },
   },

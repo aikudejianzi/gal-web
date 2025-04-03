@@ -6,7 +6,7 @@
     </div>
 
     <!-- 发表评论 -->
-    <div class="comment-form" v-if="userInfo.id">
+    <div class="comment-form" v-if="userInfo && userInfo.id">
       <el-input
         type="textarea"
         :rows="3"
@@ -34,7 +34,7 @@
               <span class="comment-time">{{formatDate(comment.createTime)}}</span>
               <!-- 删除按钮 -->
               <el-button 
-                v-if="userInfo.id === comment.userId"
+                v-if="userInfo && userInfo.id === comment.userId"
                 type="text" 
                 class="delete-btn"
                 @click="deleteComment(comment.id)">
@@ -67,7 +67,7 @@ export default {
     },
     userInfo: {
       type: Object,
-      default: () => ({})
+      default: () => null
     }
   },
   data() {

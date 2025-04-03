@@ -3,16 +3,28 @@
     <h2>我的文章</h2>
     <el-table
       v-loading="loading"
-      :data="articles"
+      :data="formatTableData"
       style="width: 100%">
       <el-table-column
         prop="title"
         label="标题"
         min-width="200">
         <template slot-scope="scope">
-          <el-link type="primary" @click="viewArticle(scope.row.id)">
+          <el-link 
+            v-if="scope.row.status === 1" 
+            type="primary" 
+            @click="viewArticle(scope.row.id)">
             {{ scope.row.title }}
           </el-link>
+          <span v-else>{{ scope.row.title }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="statusText"
+        label="状态"
+        width="100">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.statusType">{{ scope.row.statusText }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column
@@ -26,8 +38,8 @@
         width="100">
       </el-table-column>
       <el-table-column
-        prop="likes"
-        label="点赞数"
+        prop="favorites"
+        label="收藏数"
         width="100">
       </el-table-column>
       <el-table-column
@@ -41,8 +53,18 @@
         <template slot-scope="scope">
           <el-button
             size="mini"
+            v-if="scope.row.status === 1"
             @click="editArticle(scope.row.id)">编辑
           </el-button>
+          <el-tooltip 
+            v-else 
+            content="文章审核中，暂时无法编辑" 
+            placement="top">
+            <el-button
+              size="mini"
+              disabled>编辑
+            </el-button>
+          </el-tooltip>
           <el-button
             size="mini"
             type="danger"
@@ -64,6 +86,9 @@
 </template>
 
 <script>
+import { getMyArticlesAPI, deleteArticleAPI } from '@/api/article'
+import dayjs from 'dayjs'
+
 export default {
   name: 'MyArticles',
   props: {
@@ -81,48 +106,44 @@ export default {
       total: 0
     }
   },
+  computed: {
+    // 格式化表格数据
+    formatTableData() {
+      return this.articles.map(article => {
+        return {
+          ...article,
+          createTime: article.createTime ? dayjs(article.createTime).format('YYYY-MM-DD HH:mm') : '',
+          statusText: article.status === 0 ? '待审核' : '已发布',
+          statusType: article.status === 0 ? 'warning' : 'success'
+        }
+      })
+    }
+  },
   created() {
     this.getArticles()
   },
   methods: {
     // 获取我的文章列表
-    getArticles() {
+    async getArticles() {
       this.loading = true
       
-      // 模拟数据
-      setTimeout(() => {
-        // 生成模拟数据
-        const mockArticles = [
-          {
-            id: 1,
-            title: '《CLANNAD》：人生的悲欢离合与重生',
-            createTime: this.formatDate(new Date().getTime() - 24 * 60 * 60 * 1000),
-            views: 356,
-            likes: 89,
-            comments: 32
-          },
-          {
-            id: 2,
-            title: '《命运石之门》：穿越时空的蝴蝶效应',
-            createTime: this.formatDate(new Date().getTime() - 3 * 24 * 60 * 60 * 1000),
-            views: 521,
-            likes: 120,
-            comments: 45
-          },
-          {
-            id: 60,
-            title: '《Angel Beats!》：青春与遗憾的故事',
-            createTime: this.formatDate(new Date().getTime() - 7 * 24 * 60 * 60 * 1000),
-            views: 423,
-            likes: 95,
-            comments: 38
-          }
-        ]
+      try {
+        const res = await getMyArticlesAPI({
+          page: this.page,
+          pageSize: this.pageSize
+        })
         
-        this.articles = mockArticles
-        this.total = 3
+        if (res && res.code === 1) {
+          this.articles = res.data.records || []
+          this.total = res.data.total || 0
+        } else {
+          this.$message.error('获取文章列表失败')
+        }
+      } catch (error) {
+        console.error('获取文章列表失败:', error)
+      } finally {
         this.loading = false
-      }, 800)
+      }
     },
 
     // 查看文章
@@ -132,7 +153,15 @@ export default {
 
     // 编辑文章
     editArticle(id) {
-      this.$router.push(`/article/edit/${id}`)
+      // 获取要编辑的文章
+      const article = this.articles.find(item => item.id === id);
+      
+      // 检查文章状态，只有已发布的文章才能编辑
+      if (article && article.status === 1) {
+        this.$router.push(`/article/edit/${id}`);
+      } else {
+        this.$message.warning('只有审核通过的文章才能编辑');
+      }
     },
 
     // 删除文章
@@ -141,16 +170,33 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
+      }).then(async () => {
         this.loading = true
         
-        // 模拟删除
-        setTimeout(() => {
-          this.articles = this.articles.filter(item => item.id !== id)
-          this.total = this.articles.length
-          this.$message.success('文章删除成功')
+        try {
+          const res = await deleteArticleAPI(id)
+          
+          if (res && res.code === 1) {
+            this.$message.success('文章删除成功')
+            
+            // 计算当前页的数据条数（删除前）
+            const currentPageSize = this.articles.length
+            
+            // 如果当前页只有一条数据且不是第一页，删除后自动返回上一页
+            if (currentPageSize === 1 && this.page > 1) {
+              this.page -= 1
+            }
+            
+            // 重新获取列表
+            this.getArticles()
+          } else {
+            this.$message.error(res.msg || '删除失败')
+            this.loading = false
+          }
+        } catch (error) {
+          console.error('删除文章失败:', error)
           this.loading = false
-        }, 800)
+        }
       }).catch(() => {})
     },
 
@@ -158,18 +204,6 @@ export default {
     handleCurrentChange(val) {
       this.page = val
       this.getArticles()
-    },
-
-    // 格式化日期
-    formatDate(timestamp) {
-      if(!timestamp) return ''
-      const date = new Date(timestamp)
-      const year = date.getFullYear()
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const day = date.getDate().toString().padStart(2, '0')
-      const hour = date.getHours().toString().padStart(2, '0')
-      const minute = date.getMinutes().toString().padStart(2, '0')
-      return `${year}-${month}-${day} ${hour}:${minute}`
     }
   }
 }

@@ -37,9 +37,12 @@ export default {
   modules: [
   ],
 
-  // 全局中间件
+  // Build Configuration: https://go.nuxtjs.dev/config-build
+  build: {
+    transpile: [/^element-ui/],
+  },
+
   router: {
-    middleware: ['auth'],
     extendRoutes(routes, resolve) {
       //1.清除Nuxt默认生成的路由
       routes.splice(0)
@@ -120,10 +123,5 @@ export default {
         }
       ])
     }
-  },
-
-  // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {
-    transpile: [/^element-ui/],
   }
 }

@@ -11,12 +11,6 @@
           <i class="el-icon-user"></i>
           <span>个人资料</span>
         </el-menu-item>
-        
-        <!--账号安全-->
-        <el-menu-item index="/user/security">
-          <i class="el-icon-lock"></i>
-          <span>账号安全</span>
-        </el-menu-item>
 
         <!--我的文章-->
         <el-menu-item index="/user/articles">
@@ -47,10 +41,12 @@
 </template>
 
 <script>
-import { checkAuthAPI } from '@/api/user'
+import { getCurrentUserAPI } from '@/api/user'
 
 export default {
   name: 'UserIndex',
+  // 设置为仅客户端渲染
+  ssr: false,
   head() {
     return {
       title: '个人中心 - LE Gal同好会'
@@ -58,7 +54,8 @@ export default {
   },
   data() {
     return {
-      userInfo: null
+      userInfo: null,
+      loading: true
     }
   },
   computed: {
@@ -72,39 +69,38 @@ export default {
       return path
     }
   },
-  async created() {
-    // 先从localStorage中获取用户信息
-    if (process.client) {
-      const userInfoStr = localStorage.getItem('userInfo')
-      if (userInfoStr) {
-        this.userInfo = JSON.parse(userInfoStr)
-      }
-    }
-    
-    // 再通过API校验并更新用户信息
-    try {
-      const res = await checkAuthAPI()
-      if (res.code === 1 && res.data) {
-        // 用服务端最新数据更新用户信息
-        this.userInfo = res.data
-        // 更新localStorage
-        if (process.client) {
-          localStorage.setItem('userInfo', JSON.stringify(res.data))
-        }
-      }
-    } catch (error) {
-      console.error('获取用户信息失败:', error)
-      // 错误处理已在响应拦截器中完成
-    }
+  // 使用created钩子在组件创建时就获取用户信息
+  created() {
+    this.fetchUserInfo()
   },
   methods: {
-    // 处理用户信息更新
-    handleUserInfoUpdated(updatedUserInfo) {
-      this.userInfo = updatedUserInfo
-      // 更新localStorage
-      if (process.client) {
-        localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
+    // 获取用户信息
+    async fetchUserInfo() {
+      try {
+        this.loading = true
+        const res = await getCurrentUserAPI()
+        if (res.data) {
+          this.userInfo = res.data
+        } else {
+          // 未登录跳转到登录页
+          this.$message.warning('请先登录')
+          this.$router.push('/login')
+        }
+      } catch (error) {
+        // 请求失败说明用户未登录或登录已过期
+        this.$message.warning('请先登录')
+        this.$router.push('/login')
+      } finally {
+        this.loading = false
       }
+    },
+    
+    // 处理用户信息更新
+    async handleUserInfoUpdated(updatedUserInfo) {
+      // 更新本地用户信息
+      this.userInfo = updatedUserInfo
+      // 重新获取最新用户信息
+      await this.fetchUserInfo()
     }
   }
 }
@@ -148,8 +144,6 @@ export default {
   padding: 20px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
-
-/* 内容区通用样式 - 现在放在各子组件中 */
 
 /* 响应式布局 */
 @media screen and (max-width: 768px) {

@@ -103,6 +103,45 @@ export function parseWordDocAPI(formData) {
   })
 }
 
+/**
+ * 获取用户的文章列表
+ * @param {Object} params - 查询参数
+ * @param {number} params.page - 当前页码
+ * @param {number} params.pageSize - 每页条数
+ * @returns {Promise} 请求结果
+ */
+export function getMyArticlesAPI(params) {
+  return request({
+    url: '/article/myArticles',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 删除文章
+ * @param {number} id - 文章ID
+ * @returns {Promise} 请求结果
+ */
+export function deleteArticleAPI(id) {
+  return request({
+    url: `/article/${id}`,
+    method: 'delete'
+  })
+}
+
+/**
+ * 增加文章浏览量
+ * @param {string|number} id - 文章ID
+ * @returns {Promise} 请求结果
+ */
+export function increaseViewCountAPI(id) {
+  return request({
+    url: `/article/increaseViewCount/${id}`,
+    method: 'put'
+  })
+}
+
 
 
 

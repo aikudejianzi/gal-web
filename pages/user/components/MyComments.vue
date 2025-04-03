@@ -15,9 +15,13 @@
         label="文章标题"
         min-width="200">
         <template slot-scope="scope">
-          <el-link type="primary" @click="viewArticle(scope.row.articleId)">
-            {{ scope.row.articleTitle }}
+          <el-link 
+            v-if="scope.row.status === 1 || scope.row.status === undefined" 
+            type="primary" 
+            @click="viewArticle(scope.row.articleId)">
+            {{ scope.row.title }}
           </el-link>
+          <span v-else>{{ scope.row.title }}</span>
         </template>
       </el-table-column>
       <el-table-column
@@ -53,6 +57,9 @@
 </template>
 
 <script>
+import { getUserCommentsAPI, deleteCommentAPI } from '@/api/comment'
+import dayjs from 'dayjs'
+
 export default {
   name: 'MyComments',
   props: {
@@ -70,62 +77,85 @@ export default {
       total: 0
     }
   },
-  created() {
-    this.getComments()
+  watch: {
+    // 监听userInfo变化，当用户信息加载完成后再获取评论列表
+    userInfo: {
+      handler(newVal) {
+        if (newVal && newVal.id) {
+          this.getComments();
+        }
+      },
+      immediate: true
+    }
+  },
+  mounted() {
+    // 如果已有用户信息则直接获取数据
+    if (this.userInfo && this.userInfo.id) {
+      this.getComments();
+    }
   },
   methods: {
     // 获取我的评论
-    getComments() {
+    async getComments() {
+      if (!this.userInfo || !this.userInfo.id) {
+        console.error('用户信息不完整')
+        this.$message.error('获取用户信息失败，请刷新页面重试')
+        return
+      }
+      
       this.loading = true
       
-      // 模拟数据
-      setTimeout(() => {
-        const mockComments = [
-          {
-            id: 1,
-            content: '这篇文章写得真好，对CLANNAD的分析很到位！',
-            articleId: 101,
-            articleTitle: '《CLANNAD》：人生的悲欢离合与重生',
-            createTime: this.formatDate(new Date().getTime() - 2 * 24 * 60 * 60 * 1000)
-          },
-          {
-            id: 2,
-            content: '命运石之门是我最喜欢的作品之一，这篇分析很精彩',
-            articleId: 102,
-            articleTitle: '《命运石之门》：穿越时空的蝴蝶效应',
-            createTime: this.formatDate(new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
-          },
-          {
-            id: 3,
-            content: 'Angel Beats确实是一部令人感动的作品，看完有种说不出的感觉',
-            articleId: 103,
-            articleTitle: '《Angel Beats!》：青春与遗憾的故事',
-            createTime: this.formatDate(new Date().getTime() - 14 * 24 * 60 * 60 * 1000)
-          }
-        ]
+      try {
+        const res = await getUserCommentsAPI({
+          userId: this.userInfo.id,
+          page: this.page,
+          pageSize: this.pageSize
+        })
         
-        this.comments = mockComments
-        this.total = mockComments.length
+        if (res && res.code === 1) {
+          // 格式化日期并设置文章标题
+          this.comments = (res.data.records || []).map(item => ({
+            ...item,
+            articleTitle: item.title, // 添加 articleTitle 属性，兼容表格显示
+            createTime: this.formatDate(item.createTime)
+          }))
+          this.total = res.data.total || 0
+        } else {
+          this.$message.error(res?.msg || '获取评论列表失败')
+        }
+      } catch (error) {
+        console.error('获取评论列表失败:', error)
+        this.$message.error('获取评论列表失败，请检查网络连接')
+      } finally {
         this.loading = false
-      }, 800)
+      }
     },
 
     // 删除评论
-    deleteComment(id) {
+    async deleteComment(commentId) {
       this.$confirm('确认删除这条评论吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
+      }).then(async () => {
         this.loading = true
         
-        // 模拟删除
-        setTimeout(() => {
-          this.comments = this.comments.filter(item => item.id !== id)
-          this.total = this.comments.length
-          this.$message.success('评论删除成功')
+        try {
+          const res = await deleteCommentAPI(commentId)
+          
+          if (res && res.code === 1) {
+            this.$message.success('评论删除成功')
+            // 重新获取评论列表
+            this.getComments()
+          } else {
+            this.$message.error(res?.msg || '删除评论失败')
+            this.loading = false
+          }
+        } catch (error) {
+          console.error('删除评论失败:', error)
+          this.$message.error('删除评论失败，请检查网络连接')
           this.loading = false
-        }, 800)
+        }
       }).catch(() => {})
     },
 
@@ -143,13 +173,7 @@ export default {
     // 格式化日期
     formatDate(timestamp) {
       if(!timestamp) return ''
-      const date = new Date(timestamp)
-      const year = date.getFullYear()
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const day = date.getDate().toString().padStart(2, '0')
-      const hour = date.getHours().toString().padStart(2, '0')
-      const minute = date.getMinutes().toString().padStart(2, '0')
-      return `${year}-${month}-${day} ${hour}:${minute}`
+      return dayjs(timestamp).format('YYYY-MM-DD HH:mm')
     }
   }
 }

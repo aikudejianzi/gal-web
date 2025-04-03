@@ -38,6 +38,8 @@
 </template>
 
 <script>
+import { getCurrentUserAPI, logoutAPI } from '@/api/user'
+
 export default {
   name: 'NavBar',
   data() {
@@ -47,34 +49,41 @@ export default {
     }
   },
   created() {
-    // 从localStorage获取用户信息
+    // 如果不是服务端渲染，则发送请求获取用户信息
     if (process.client) {
-      const userInfoStr = localStorage.getItem('userInfo')
-      if (userInfoStr) {
-        try {
-          this.userInfo = JSON.parse(userInfoStr)
-        } catch (error) {
-          localStorage.removeItem('userInfo')
-          this.userInfo = null
-        }
-      }
+      this.fetchUserInfo()
     }
   },
   methods: {
+    // 获取用户信息
+    async fetchUserInfo() {
+      try {
+        const res = await getCurrentUserAPI()
+        this.userInfo = res.data
+      } catch (error) {
+        // 请求失败说明用户未登录或登录已过期
+        this.userInfo = null
+      }
+    },
+    
     // 退出登录
-    handleLogout() {
-      // 清除localStorage中的用户信息
-      localStorage.removeItem('userInfo')
-      
-      // 清空当前用户信息
-      this.userInfo = null
-      
-      // 提示用户已退出
-      this.$message.success('已退出登录')
-      
-      // 如果当前在用户中心页面，则跳转到首页
-      if (this.$route.path.startsWith('/user')) {
-        this.$router.push('/')
+    async handleLogout() {
+      try {
+        // 发送退出登录请求
+        await logoutAPI()
+        
+        // 清空当前用户信息
+        this.userInfo = null
+        
+        // 提示用户已退出
+        this.$message.success('已退出登录')
+        
+        // 如果当前在用户中心页面，则跳转到首页
+        if (this.$route.path.startsWith('/user')) {
+          this.$router.push('/')
+        }
+      } catch (error) {
+        this.$message.error('退出登录失败')
       }
     }
   }

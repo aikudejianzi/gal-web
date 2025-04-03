@@ -22,9 +22,11 @@
 <script>
 import ArticleContent from './components/ArticleContent.vue'
 import ArticleComments from './components/ArticleComments.vue'
-import { getArticleDetailAPI} from '@/api/article'  
+import { getArticleDetailAPI, increaseViewCountAPI } from '@/api/article'  
 import { getArticleCommentListAPI, addCommentAPI, deleteCommentAPI } from '@/api/comment'
 import { checkIsFavoriteAPI, toggleFavoriteAPI } from '@/api/favorite'
+import { getCurrentUserAPI } from '@/api/user'
+
 export default {
   name: 'Article',
   components: {
@@ -70,28 +72,49 @@ export default {
   data() {
     return {
       // 用户信息
-      userInfo: {},
+      userInfo: null,
       isFavorite: false
     }
   },
   async mounted() {
-    //从localStorage中获取用户信息
-    const userInfoStr = localStorage.getItem('userInfo')
-
-    //用户已登录
-    if (userInfoStr) {
-      this.userInfo = JSON.parse(userInfoStr)
-      //从路径中获取文章id
-      const articleId = this.$route.params.id
-      //检查用户是否收藏了该文章
-      const res = await checkIsFavoriteAPI(articleId, this.userInfo.id)
-      this.isFavorite = res.data
-    }
-
-
-
+    // 获取当前登录用户信息
+    await this.fetchUserInfo()
+    
+    // 增加文章浏览量
+    await this.increaseViewCount()
   },
   methods: {
+    // 增加文章浏览量
+    async increaseViewCount() {
+      try {
+        const articleId = this.$route.params.id
+        await increaseViewCountAPI(articleId)
+        // 更新本地文章对象浏览量
+        this.article.views += 1
+      } catch (error) {
+        console.error('增加浏览量失败', error)
+      }
+    },
+    
+    // 获取用户信息
+    async fetchUserInfo() {
+      try {
+        const res = await getCurrentUserAPI()
+        this.userInfo = res.data
+        
+        // 用户已登录，检查是否收藏
+        if (this.userInfo) {
+          const articleId = this.$route.params.id
+          const res = await checkIsFavoriteAPI(articleId, this.userInfo.id)
+          this.isFavorite = res.data
+        }
+      } catch (error) {
+        // 请求失败说明用户未登录或登录已过期
+        this.userInfo = null
+        this.isFavorite = false
+      }
+    },
+    
     // 切换收藏状态
     async toggleFavorite() {
       // 从路径中获取文章id 

@@ -74,7 +74,8 @@ export default {
     },
     userInfo: {
       type: Object,
-      required: true
+      required: false,
+      default: () => null
     }
   },
   computed: {

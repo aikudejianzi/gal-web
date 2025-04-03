@@ -10,15 +10,22 @@
         label="标题"
         min-width="200">
         <template slot-scope="scope">
-          <el-link type="primary" @click="viewArticle(scope.row.articleId)">
+          <el-link 
+            v-if="scope.row.status === 1 || scope.row.status === undefined" 
+            type="primary" 
+            @click="viewArticle(scope.row.id)">
             {{ scope.row.title }}
           </el-link>
+          <span v-else>{{ scope.row.title }}</span>
         </template>
       </el-table-column>
       <el-table-column
-        prop="author"
+        prop="username"
         label="作者"
-        width="120">
+        width="180">
+        <template slot-scope="scope">
+          <span class="username-cell">{{ scope.row.username }}</span>
+        </template>
       </el-table-column>
       <el-table-column
         prop="createTime"
@@ -32,7 +39,7 @@
           <el-button
             size="mini"
             type="danger"
-            @click="cancelCollect(scope.row.articleId)">取消收藏
+            @click="cancelCollect(scope.row.id)">取消收藏
           </el-button>
         </template>
       </el-table-column>
@@ -53,6 +60,9 @@
 </template>
 
 <script>
+import { getFavoriteArticlesAPI, cancelFavoriteAPI } from '@/api/favorite'
+import dayjs from 'dayjs'
+
 export default {
   name: 'FavoriteArticles',
   props: {
@@ -70,62 +80,85 @@ export default {
       total: 0
     }
   },
-  created() {
-    this.getFavoriteArticles()
+  watch: {
+    // 监听userInfo变化，当用户信息加载完成后再获取收藏列表
+    userInfo: {
+      handler(newVal) {
+        if (newVal && newVal.id) {
+          this.getFavoriteArticles();
+        }
+      },
+      immediate: true
+    }
+  },
+  mounted() {
+    // 如果已有用户信息则直接获取数据
+    if (this.userInfo && this.userInfo.id) {
+      this.getFavoriteArticles();
+    }
   },
   methods: {
     // 获取收藏的文章
-    getFavoriteArticles() {
+    async getFavoriteArticles() {
+      if (!this.userInfo || !this.userInfo.id) {
+        console.error('用户信息不完整')
+        this.$message.error('获取用户信息失败，请刷新页面重试')
+        return
+      }
+      
       this.loading = true
       
-      // 模拟数据
-      setTimeout(() => {
-        const mockFavorites = [
-          {
-            id: 1,
-            articleId: 101,
-            title: '《CLANNAD》：催泪神作的魅力解析',
-            author: '岡崎朋也',
-            createTime: this.formatDate(new Date().getTime() - 5 * 24 * 60 * 60 * 1000)
-          },
-          {
-            id: 2,
-            articleId: 102,
-            title: '《Steins;Gate》：命运石之门的科学设定',
-            author: '冈部伦太郎',
-            createTime: this.formatDate(new Date().getTime() - 10 * 24 * 60 * 60 * 1000)
-          },
-          {
-            id: 3,
-            articleId: 103,
-            title: '《樱花庄的宠物女孩》：青春校园的浪漫',
-            author: '空太',
-            createTime: this.formatDate(new Date().getTime() - 15 * 24 * 60 * 60 * 1000)
-          }
-        ]
+      try {
+        const res = await getFavoriteArticlesAPI({
+          userId: this.userInfo.id,
+          page: this.page,
+          pageSize: this.pageSize
+        })
         
-        this.favoriteArticles = mockFavorites
-        this.total = mockFavorites.length
+        if (res && res.code === 1) {
+          // 格式化日期
+          this.favoriteArticles = (res.data.records || []).map(item => ({
+            ...item,
+            createTime: this.formatDate(item.createTime)
+          }))
+          this.total = res.data.total || 0
+        } else {
+          this.$message.error(res?.msg || '获取收藏列表失败')
+        }
+      } catch (error) {
+        console.error('获取收藏列表失败:', error)
+        this.$message.error('获取收藏列表失败，请检查网络连接')
+      } finally {
         this.loading = false
-      }, 800)
+      }
     },
 
     // 取消收藏
-    cancelCollect(articleId) {
+    async cancelCollect(articleId) {
       this.$confirm('确认取消收藏吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
+      }).then(async () => {
         this.loading = true
         
-        // 模拟取消收藏
-        setTimeout(() => {
-          this.favoriteArticles = this.favoriteArticles.filter(item => item.articleId !== articleId)
-          this.total = this.favoriteArticles.length
-          this.$message.success('取消收藏成功')
+        try {
+          // 使用专门的取消收藏API
+          const res = await cancelFavoriteAPI(articleId, this.userInfo.id)
+          
+          if (res && res.code === 1) {
+            this.$message.success('取消收藏成功')
+            // 重新获取收藏列表
+            this.getFavoriteArticles()
+          } else {
+            this.$message.error(res.msg || '取消收藏失败')
+            this.loading = false
+          }
+        } catch (error) {
+          console.error('取消收藏失败:', error)
+          this.$message.error('取消收藏失败')
           this.loading = false
-        }, 800)
+        }
       }).catch(() => {})
     },
 
@@ -143,13 +176,7 @@ export default {
     // 格式化日期
     formatDate(timestamp) {
       if(!timestamp) return ''
-      const date = new Date(timestamp)
-      const year = date.getFullYear()
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const day = date.getDate().toString().padStart(2, '0')
-      const hour = date.getHours().toString().padStart(2, '0')
-      const minute = date.getMinutes().toString().padStart(2, '0')
-      return `${year}-${month}-${day} ${hour}:${minute}`
+      return dayjs(timestamp).format('YYYY-MM-DD HH:mm')
     }
   }
 }
@@ -180,5 +207,13 @@ export default {
 
 .el-table {
   margin-bottom: 20px;
+}
+
+.username-cell {
+  display: inline-block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

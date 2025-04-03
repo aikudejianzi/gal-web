@@ -1,17 +1,6 @@
 import request from '@/utils/request'
 
 /**
- * 检查用户登录状态
- * @returns {Promise} 请求结果
- */
-export function checkAuthAPI() {
-  return request({
-    url: '/user/checkAuth',
-    method: 'get'
-  })
-}
-
-/**
  * 发送验证码
  * @param {string} email - 邮箱地址
  * @returns {Promise} 请求结果
@@ -65,5 +54,27 @@ export function uploadImageAPI(formData) {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
+  })
+}
+
+/**
+ * 获取当前登录用户信息
+ * @returns {Promise} 请求结果，包含用户信息
+ */
+export function getCurrentUserAPI() {
+  return request({
+    url: '/user/current',
+    method: 'get'
+  })
+}
+
+/**
+ * 退出登录
+ * @returns {Promise} 请求结果
+ */
+export function logoutAPI() {
+  return request({
+    url: '/user/logout',
+    method: 'post'
   })
 }

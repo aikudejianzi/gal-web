@@ -26,3 +26,19 @@ export function deleteCommentAPI(commentId) {
       params: { commentId }
     })
 }
+
+/**
+ * 获取用户评论列表
+ * @param {Object} params - 查询参数
+ * @param {number|string} params.userId - 用户ID
+ * @param {number} params.page - 当前页码
+ * @param {number} params.pageSize - 每页显示数量
+ * @returns {Promise} 包含分页评论列表的Promise
+ */
+export function getUserCommentsAPI(params) {
+  return request({
+    url: '/comment/userComments',
+    method: 'get',
+    params
+  })
+}

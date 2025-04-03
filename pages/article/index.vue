@@ -42,9 +42,14 @@
               </el-input>
             </el-col>
 
-            <!-- 投稿按钮 -->
+            <!-- 投稿按钮 - 根据登录状态显示不同内容 -->
             <el-col :span="4" style="text-align: right;"> 
-              <el-button type="primary" icon="el-icon-edit" @click="$router.push('/article/submit')">投稿</el-button>
+              <el-button 
+                type="primary" 
+                icon="el-icon-edit" 
+                @click="handleSubmit">
+                {{ userInfo ? '投稿' : '登录后投稿' }}
+              </el-button>
             </el-col>
           </el-row>
         </div>
@@ -126,6 +131,7 @@
 
 <script>
 import { getArticleListAPI } from '@/api/article'
+import { getCurrentUserAPI } from '@/api/user'
 import dayjs from 'dayjs'
 
 // 提取公共方法到组件外部
@@ -154,6 +160,9 @@ export default {
 
       // 文章总数
       total: 0,
+
+      // 用户信息
+      userInfo: null,
 
       // 列表查询条件
       listQuery: {
@@ -231,7 +240,41 @@ export default {
     }
   },
 
+  // 在mounted阶段获取用户登录状态
+  async mounted() {
+    if (process.client) {
+      await this.fetchUserInfo();
+    }
+  },
+
   methods: {
+    // 获取用户信息
+    async fetchUserInfo() {
+      try {
+        const res = await getCurrentUserAPI();
+        if (res && res.code === 1 && res.data) {
+          this.userInfo = res.data;
+        } else {
+          this.userInfo = null;
+        }
+      } catch (error) {
+        // 请求失败说明用户未登录或登录已过期
+        this.userInfo = null;
+      }
+    },
+
+    // 处理投稿按钮点击
+    handleSubmit() {
+      if (this.userInfo) {
+        // 已登录，直接跳转投稿页
+        this.$router.push('/article/submit');
+      } else {
+        // 未登录，先提示然后跳转登录页
+        this.$message.info('请先登录后再投稿');
+        this.$router.push('/login');
+      }
+    },
+
     // 获取文章列表
     async getArticleList () {
       try {
@@ -273,11 +316,6 @@ export default {
     handleCurrentChange (val) {
       this.listQuery.page = val
       this.getArticleList()
-    },
-
-    // 跳转到投稿页面
-    goToSubmit () {
-      window.location.href = '../../page/article/submit.html'
     },
 
     // 处理筛选条件变化
