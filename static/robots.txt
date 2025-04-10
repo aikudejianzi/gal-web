@@ -1,0 +1,13 @@
+# 允许所有搜索引擎爬虫访问
+User-agent: *
+Allow: /
+
+# 禁止爬虫访问的路径
+Disallow: /admin/
+Disallow: /user/
+Disallow: /article/submit
+Disallow: /article/edit/
+Disallow: /activity/game-grid/editor
+
+# Sitemap位置
+Sitemap: https://aiwujiegal.top/sitemap.xml 

@@ -57,18 +57,6 @@ export function addArticleAPI(data) {
 }
 
 /**
- * 删除文件
- * @param {string} filename - 文件名称
- * @returns {Promise} 请求结果
- */
-export function deleteFileAPI(filename) {
-  return request({
-    url: `/common/delete/${filename}`,
-    method: 'delete'
-  })
-}
-
-/**
  * 更新文章
  * @param {Object} data - 文章数据
  * @param {number|string} data.id - 文章ID

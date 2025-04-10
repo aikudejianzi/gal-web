@@ -48,7 +48,7 @@
       <el-form-item label="封面">
         <el-upload
           class="avatar-uploader"
-          action="http://localhost:8080/common/upload"
+          action="https://aiwujiegal.top/api/common/upload"
           :show-file-list="false"
           :on-success="handleCoverSuccess"
           :before-upload="beforeCoverUpload"
@@ -111,7 +111,7 @@
 
 <script>
 import Vue from 'vue'
-import { addArticleAPI, deleteFileAPI, getArticleDetailAPI, updateArticleAPI, parseWordDocAPI } from '@/api/article'
+import { addArticleAPI, getArticleDetailAPI, updateArticleAPI, parseWordDocAPI } from '@/api/article'
 import { getCurrentUserAPI } from '@/api/user'
 
 // 在客户端才导入编辑器
@@ -143,8 +143,6 @@ export default Vue.extend({
   data() {
     return {
       editor: null,
-      imageList1: [], // 存储插入的图片
-      imageList2: [], // 存储最终实际插入(没有被删除的)图片
       isEditMode: false, // 是否是编辑模式
       articleId: null, // 文章ID (编辑模式使用)
       userInfo: null, // 用户信息
@@ -158,22 +156,9 @@ export default Vue.extend({
       editorConfig: { 
         placeholder: '请输入内容...',
         MENU_CONF: {
-          insertImage: {
-            onInsertedImage: (imageNode) => {
-              if (imageNode == null) return
-
-              //获取图片的src
-              const {src} = imageNode
-              console.log(src)
-
-              //将图片的src放入imageList1中
-              this.imageList1.push(src)
-
-            }
-          },
           // 图片上传配置
           uploadImage: {
-            server: 'http://localhost:8080/common/upload', // 上传接口地址
+            server: 'https://aiwujiegal.top/api/common/upload', // 上传接口地址
             fieldName: 'file', // 上传图片的字段名
             maxFileSize: 5 * 1024 * 1024, // 限制大小，默认5M
             maxNumberOfFiles: 10, // 限制数量
@@ -185,7 +170,7 @@ export default Vue.extend({
               formData.append('file', file)
               
               // 发送上传请求
-              fetch('http://localhost:8080/common/upload', {
+              fetch('https://aiwujiegal.top/api/common/upload', {
                 method: 'POST',
                 body: formData,
                 credentials: 'include' // 允许携带cookie
@@ -277,15 +262,6 @@ export default Vue.extend({
           if (article.tags) {
             this.articleForm.tags = article.tags.split(',').filter(tag => tag.trim());
           }
-          
-          // 记录当前图片列表，用于跟踪编辑过程中的图片变化
-          const imgReg = /<img[^>]+src="([^"]+)"[^>]*>/g;
-          let match;
-          while ((match = imgReg.exec(article.content)) !== null) {
-            this.imageList1.push(match[1]);
-            this.imageList2.push(match[1]);
-          }
-          
         } else {
           this.$message.error('获取文章详情失败');
           // 失败后返回列表页
@@ -350,20 +326,7 @@ export default Vue.extend({
     },
     removeCover(e) {
       e.preventDefault();
-      
-      // 如果有封面图片，则从URL中提取文件名并调用删除API
-      if (this.articleForm.cover) {
-          // 从URL中提取文件名
-          const url = this.articleForm.cover;
-          const filename = url.substring(url.lastIndexOf('/') + 1);
-          // 调用删除API
-          deleteFileAPI(filename).then(res => {
-            if (res && res.code === 1) {
-              this.$message.success('封面已删除');
-            }
-          })
-      }
-      // 无论服务器端是否成功删除，前端都清空封面
+      // 只清空前端的封面URL，不删除服务器图片
       this.articleForm.cover = '';
     },
     submitArticle() {
@@ -388,33 +351,6 @@ export default Vue.extend({
               userId: this.userInfo.id,
               // 将标签数组转换为字符串
               tags: this.articleForm.tags.join(',')
-            }
-
-            // 获取实际使用的图片
-            if (this.editor) {
-              this.imageList2 = this.editor.getElemsByType('image').map(item => {
-                const imgElem = item.children[0];
-                return imgElem.src;
-              });
-              
-              // 获取上传到服务器, 但没被使用的图片
-              const unusedImageList = this.imageList1.filter(item => !this.imageList2.includes(item))
-            
-              // 删除未使用的图片
-              if (unusedImageList.length > 0) {
-                console.log('删除未使用的图片:', unusedImageList);
-                // 循环删除每张未使用的图片
-                unusedImageList.forEach(imageUrl => {
-                  try {
-                    // 从URL中提取文件名
-                    const filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-                    // 调用删除API
-                    deleteFileAPI(filename);
-                  } catch (error) {
-                    console.error('删除未使用图片失败:', error);
-                  }
-                });
-              }
             }
 
             let res;
@@ -447,27 +383,6 @@ export default Vue.extend({
       });
     },
     resetForm() {
-      // 删除已上传的封面图片
-      if (this.articleForm.cover) {
-          // 从URL中提取文件名
-          const url = this.articleForm.cover;
-          const filename = url.substring(url.lastIndexOf('/') + 1);
-          // 调用删除API
-          deleteFileAPI(filename)
-      }
-      // 删除已上传但未使用的编辑器图片
-      if (this.imageList1.length > 0) {
-        this.imageList1.forEach(imageUrl => {
-            // 从URL中提取文件名
-            const filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-            // 调用删除API
-            deleteFileAPI(filename)
-        });
-        // 清空图片列表
-        this.imageList1 = [];
-        this.imageList2 = [];
-      }
-      
       // 重置表单字段
       this.$refs.articleForm.resetFields();
       this.articleForm.tags = [];
@@ -502,23 +417,6 @@ export default Vue.extend({
             
             // 更新表单值
             this.articleForm.content = this.editor.getHtml();
-            
-            // 从内容中提取图片URL添加到imageList1中
-            const imgReg = /<img[^>]+src="([^"]+)"[^>]*>/g;
-            let match;
-            const imageUrls = [];
-            
-            while ((match = imgReg.exec(res.data)) !== null) {
-              const imageUrl = match[1];
-              if (!this.imageList1.includes(imageUrl)) {
-                this.imageList1.push(imageUrl);
-                imageUrls.push(imageUrl);
-              }
-            }
-            
-            if (imageUrls.length > 0) {
-              console.log('Word文档中的图片已提取:', imageUrls);
-            }
           } else {
             // 编辑器未初始化，直接设置内容
             this.articleForm.content = res.data;

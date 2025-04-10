@@ -34,8 +34,47 @@ export default {
     ArticleComments
   },
   head() {
+    // 确保文章数据存在
+    if (!this.article) {
+      return {}
+    }
+
     return {
-      title: `文章详情 - 兰州大学GalGame同好会`
+      title: `${this.article.title} - 兰州大学Galgame同好会`,
+      meta: [
+        {
+          hid: 'description',
+          name: 'description',
+          content: this.article.summary || this.article.content.substring(0, 150)
+        }
+      ],
+      script: [
+        {
+          type: 'application/ld+json',
+          json: {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": this.article.title,
+            "image": this.article.coverImage ? `https://aiwujiegal.top${this.article.coverImage}` : 'https://aiwujiegal.top/default-article-cover.png',
+            "author": {
+              "@type": "Person",
+              "name": this.article.authorName
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "兰州大学Galgame同好会",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://aiwujiegal.top/logo.png"
+              }
+            },
+            "datePublished": this.article.createTime,
+            "dateModified": this.article.updateTime || this.article.createTime,
+            "description": this.article.summary || this.article.content.substring(0, 150),
+            "url": `https://aiwujiegal.top/article/${this.article.id}`
+          }
+        }
+      ]
     }
   },
   async asyncData({ params, error }) {

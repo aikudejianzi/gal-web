@@ -15,6 +15,13 @@
     <el-menu-item index="/">主页</el-menu-item>
     <!-- 文章 -->
     <el-menu-item index="/articles">文章</el-menu-item>
+    <!-- 游戏 -->
+    <el-menu-item index="/games">游戏</el-menu-item>
+    <!-- 制作人员/公司 -->
+    <el-menu-item index="/persons">制作人员/公司</el-menu-item>
+    <!-- 活动 -->
+    <el-menu-item index="/activities">活动</el-menu-item>
+
     <!-- 分隔作用, 如果没有这个, 菜单会挤在一起 -->
     <div class="flex-spacer"></div>
     
@@ -27,10 +34,13 @@
     <!-- 已登录显示用户名和下拉菜单 -->
     <el-submenu v-else index="/user">
       <template slot="title">
-        <el-avatar :size="30" :src="userInfo.avatar"></el-avatar>
+        <div class="avatar-container">
+          <img :src="userInfo.avatar" class="nav-avatar" alt="用户头像">
+        </div>
         <span style="margin-left: 5px">{{ userInfo.username }}</span>
       </template>
       <el-menu-item index="/user">个人中心</el-menu-item>
+      <el-menu-item v-if="userInfo && userInfo.role === 0" index="/admin">管理后台</el-menu-item>
       <el-menu-item @click="handleLogout">退出登录</el-menu-item>
     </el-submenu>
   </el-menu>
@@ -52,6 +62,15 @@ export default {
     // 如果不是服务端渲染，则发送请求获取用户信息
     if (process.client) {
       this.fetchUserInfo()
+      
+      // 监听全局事件，当用户信息更新时刷新导航栏
+      this.$nuxt.$on('user-info-updated', this.fetchUserInfo)
+    }
+  },
+  // 组件销毁时移除事件监听
+  beforeDestroy() {
+    if (process.client) {
+      this.$nuxt.$off('user-info-updated', this.fetchUserInfo)
     }
   },
   methods: {
@@ -117,6 +136,24 @@ export default {
 
 .flex-spacer {
   flex-grow: 1;
+}
+
+.avatar-container {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.nav-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .search-input {

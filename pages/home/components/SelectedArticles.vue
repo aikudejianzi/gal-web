@@ -8,7 +8,7 @@
 
     <!-- 精选文章列表 --> 
     <el-row :gutter="20">
-      <el-col :span="8" v-for="(article, index) in selectedArticles" :key="index">
+      <el-col :span="8" v-for="(article, index) in selectedArticles" :key="index" class="fade-in-element">
         <!-- 文章卡片 -->
         <el-card class="article-card" shadow="hover" @click.native="$router.push(`/article/${article.id}`)">
           <!-- 文章图片 --> 
@@ -43,6 +43,29 @@ export default {
         required: true
       }
     },
+    mounted() {
+      this.initFadeInAnimation();
+    },
+    methods: {
+      initFadeInAnimation() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+            }
+          });
+        }, {
+          threshold: 0.1,
+          rootMargin: '50px'
+        });
+
+        const elements = this.$el.querySelectorAll('.fade-in-element');
+        elements.forEach((el, index) => {
+          el.style.transitionDelay = `${index * 0.1}s`; // 添加延迟，实现依次渐入
+          observer.observe(el);
+        });
+      }
+    }
 }
 </script>
 
@@ -199,5 +222,16 @@ export default {
   .article-image {
     height: 160px;
   }
+}
+
+.fade-in-element {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-element.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
