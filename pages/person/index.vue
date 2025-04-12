@@ -209,9 +209,11 @@ export default {
 
 <style scoped>
 .person-list-container {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 20px auto;
   padding: 0 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .search-section {
@@ -297,6 +299,31 @@ export default {
 .pagination-container {
   text-align: center;
   margin-top: 30px;
+}
+
+@media screen and (max-width: 768px) {
+  .person-list-container {
+    padding: 0 10px;
+  }
+  
+  .person-card-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .person-avatar {
+    margin-bottom: 15px;
+    margin-right: 0;
+  }
+  
+  .person-info {
+    width: 100%;
+  }
+  
+  .person-jobs {
+    justify-content: center;
+  }
 }
 </style> 
  

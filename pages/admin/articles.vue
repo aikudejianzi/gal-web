@@ -100,8 +100,9 @@
     <el-dialog
       title="文章预览"
       :visible.sync="previewDialogVisible"
-      width="70%"
-      top="5vh">
+      width="800px"
+      top="5vh"
+      custom-class="article-preview-dialog">
       <div v-if="currentArticle" class="article-preview">
         <h1 class="article-title">{{ currentArticle.title }}</h1>
         <div class="article-info">
@@ -322,28 +323,63 @@ export default {
 }
 
 /* 文章预览样式 */
-.article-preview {
+.article-preview-dialog .el-dialog__header {
   padding: 10px;
 }
 
+.article-preview-dialog .el-dialog__body {
+  padding: 0;
+  padding-bottom: 5px;
+}
+
+.article-preview-dialog .el-dialog__footer {
+  padding: 5px 10px 10px;
+}
+
+.article-preview {
+  padding: 0 10px;
+  max-width: 708px;
+  margin: 0 auto;
+}
+
 .article-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
-  margin-bottom: 16px;
+  margin-top: 5px;
+  margin-bottom: 5px;
   color: #333;
+  text-align: center;
 }
 
 .article-info {
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   color: #777;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 15px;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
 }
 
 .article-content {
-  line-height: 1.8;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+.article-content p {
+  margin-bottom: 10px;
+  margin-top: 0;
+}
+
+.article-content h1, 
+.article-content h2, 
+.article-content h3, 
+.article-content h4 {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  color: #333;
 }
 
 .article-content img {
@@ -351,19 +387,6 @@ export default {
   height: auto;
   display: block;
   margin: 10px auto;
-}
-
-.article-content h1, 
-.article-content h2, 
-.article-content h3, 
-.article-content h4 {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  color: #333;
-}
-
-.article-content p {
-  margin-bottom: 16px;
 }
 
 .article-content pre {

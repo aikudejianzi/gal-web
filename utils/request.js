@@ -1,6 +1,7 @@
 // 1.导入
 import axios from 'axios'
 import { Message, Loading } from 'element-ui'
+import config from '@/config'
 
 // loading实例
 let loadingInstance = null
@@ -9,7 +10,7 @@ let loadingInstance = null
 const request = axios.create({
   // 设置请求基础路径
   // baseURL: 'http://localhost:8080',
-  baseURL: 'https://aiwujiegal.top/api',
+  baseURL: config.apiBaseUrl,
   // 设置请求超时时间
   timeout: 1000000,
   // 允许携带cookie

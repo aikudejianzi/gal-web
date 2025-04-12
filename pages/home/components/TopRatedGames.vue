@@ -4,8 +4,8 @@
       <h2>高分游戏</h2>
       <el-button type="text" @click="$router.push('/games')">查看更多</el-button>
     </div>
-    <el-row :gutter="20">
-      <el-col :xs="12" :sm="8" :md="6" :lg="6" :xl="6" v-for="game in topRatedGames" :key="game.id" class="fade-in-element">
+    <el-row :gutter="25">
+      <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8" v-for="game in topRatedGames.slice(0, 6)" :key="game.id" class="fade-in-element">
         <el-card class="game-card" shadow="hover" @click.native="$router.push(`/game/${game.id}`)">
           <div class="game-cover">
             <img :src="game.cover || '/default-game-cover.jpg'" :alt="`${game.nameCn || game.name} - 游戏封面`" :title="game.nameCn || game.name">
@@ -106,9 +106,9 @@ export default {
 }
 
 .featured-games {
-  max-width: 1400px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px 50px;
   background-color: #f8f9fa;
   border-radius: 12px;
 }
@@ -116,7 +116,7 @@ export default {
 .game-card {
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
   border: none;
   border-radius: 12px;
   overflow: hidden;
@@ -125,7 +125,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 330px;
+  min-height: 340px;
 }
 
 .game-card:hover {
@@ -135,7 +135,7 @@ export default {
 
 .game-cover {
   position: relative;
-  height: 240px;
+  height: 230px;
   overflow: hidden;
   background-color: #f5f5f5;
   display: flex;
@@ -167,7 +167,7 @@ export default {
 }
 
 .game-info {
-  padding: 12px;
+  padding: 15px;
   flex: 1;
 }
 
@@ -188,13 +188,81 @@ export default {
   color: #909399;
 }
 
+@media screen and (max-width: 992px) {
+  .featured-games {
+    padding: 25px 30px;
+  }
+  
+  .game-cover {
+    height: 200px;
+  }
+  
+  .game-card {
+    min-height: 320px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .section {
     padding: 15px;
   }
   
+  .featured-games {
+    padding: 15px 20px;
+  }
+  
+  .section-header h2 {
+    font-size: 24px;
+  }
+  
   .game-cover {
-    height: 160px;
+    height: 180px;
+  }
+  
+  .game-card {
+    min-height: 280px;
+    margin-bottom: 25px;
+  }
+  
+  .game-info {
+    padding: 12px;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .featured-games {
+    padding: 12px 15px;
+  }
+  
+  .section-header h2 {
+    font-size: 22px;
+  }
+  
+  .game-cover {
+    height: 150px;
+  }
+  
+  .game-card {
+    min-height: 250px;
+    margin-bottom: 20px;
+  }
+  
+  .game-info {
+    padding: 10px;
+  }
+  
+  .game-title {
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  
+  .game-meta {
+    font-size: 11px;
+  }
+  
+  .el-col {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
 }
 

@@ -239,28 +239,30 @@ export default {
 
 <style scoped>
 .game-list-container {
-  max-width: 1200px;
+  max-width: 708px;
   margin: 20px auto;
-  padding: 0 20px;
+  padding: 0 10px;
+  position: relative; /* 增加相对定位 */
+  z-index: 1; /* 确保内容层级低于导航栏 */
 }
 
 .filter-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .search-input {
-  width: 250px;
+  width: 220px;
 }
 
 .game-list {
-  margin-bottom: 30px;
+  margin-bottom: 15px;
 }
 
 .game-card {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   transition: transform 0.3s;
 }
 
@@ -274,43 +276,50 @@ export default {
 }
 
 .game-cover {
-  flex: 0 0 100px;
-  margin-right: 20px;
+  flex: 0 0 70px;
+  margin-right: 12px;
 }
 
 .cover-image {
-  width: 100px;
-  height: 140px;
+  width: 70px;
+  height: 98px;
   object-fit: cover;
   border-radius: 4px;
 }
 
 .game-info {
   flex: 1;
+  min-width: 0; /* 防止内容溢出 */
 }
 
 .game-title {
-  margin: 0 0 5px;
-  font-size: 18px;
+  margin: 0 0 2px;
+  font-size: 15px;
   color: #303133;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .game-original-name {
-  margin: 0 0 5px;
-  font-size: 14px;
+  margin: 0 0 2px;
+  font-size: 12px;
   color: #606266;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .game-date {
-  margin: 5px 0;
-  font-size: 14px;
+  margin: 2px 0;
+  font-size: 12px;
   color: #909399;
 }
 
 .game-rating {
-  flex: 0 0 140px;
+  flex: 0 0 110px;
   text-align: center;
-  padding: 0 10px;
+  padding: 0 3px;
 }
 
 .rating-wrapper {
@@ -339,11 +348,11 @@ export default {
 }
 
 .game-rank {
-  flex: 0 0 50px;
+  flex: 0 0 35px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: bold;
   color: #909399;
 }
@@ -370,5 +379,63 @@ export default {
 }
 .rating-poor {
   color: #909399; /* 灰色 - 较差 */
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .search-input {
+    width: 180px;
+  }
+  .filter-section {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .left-section, .right-section {
+    width: 100%;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .game-card-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .game-rank {
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+  .game-cover {
+    margin: 0 0 10px 0;
+  }
+  .game-info {
+    margin-bottom: 10px;
+    width: 100%;
+  }
+  .game-title, .game-original-name {
+    white-space: normal;
+    text-align: center;
+  }
+  .pagination-container .el-pagination {
+    padding: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .el-pagination__sizes {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .search-input {
+    width: 100%;
+  }
+  .game-card {
+    margin-bottom: 15px;
+  }
+  .el-pagination__jump {
+    display: none !important;
+  }
 }
 </style> 

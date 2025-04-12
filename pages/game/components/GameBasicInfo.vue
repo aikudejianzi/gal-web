@@ -173,6 +173,31 @@ export default {
           this.$message.success('评分成功');
           // 刷新游戏信息
           this.$emit('refresh');
+          
+          // 如果是首次评分或者改变了评分，提示用户是否要发表短评
+          if (this.gameInfo.userRating !== rating) {
+            this.$confirm('评分成功！要分享您对这款游戏的看法吗？', '发表短评', {
+              confirmButtonText: '去评论',
+              cancelButtonText: '暂不评论',
+              type: 'info',
+              center: true
+            }).then(() => {
+              // 跳转到评论区
+              const commentSection = document.querySelector('.game-short-comments');
+              if (commentSection) {
+                commentSection.scrollIntoView({ behavior: 'smooth' });
+                // 聚焦到评论输入框
+                setTimeout(() => {
+                  const textarea = document.querySelector('.add-comment-section textarea');
+                  if (textarea) {
+                    textarea.focus();
+                  }
+                }, 500);
+              }
+            }).catch(() => {
+              // 用户取消，不做任何操作
+            });
+          }
         } else {
           // 显示具体错误信息
           this.$message.error(res.msg || '评分失败');

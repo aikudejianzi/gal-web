@@ -23,6 +23,7 @@
     "webpack": "^4.46.0"
   },
   "devDependencies": {
+    "@nuxtjs/proxy": "^2.1.0",
     "json-server": "^1.0.0-beta.3"
   }
 }

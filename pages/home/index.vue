@@ -175,12 +175,13 @@ export default {
 }
 
 .content-wrapper {
-  padding-top: 60px;
+  padding-top: 70px;
+  padding-bottom: 80px;
   background-color: #fff;
 }
 
 .content-section {
-  padding: 40px 20px;
+  padding: 70px 20px;
 }
 
 /* 渐入动画 */
@@ -193,5 +194,56 @@ export default {
 .fade-in-element.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media screen and (max-width: 992px) {
+  .content-wrapper {
+    padding-top: 60px;
+    padding-bottom: 70px;
+  }
+  
+  .content-section {
+    padding: 50px 15px;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .content-section {
+    padding: 40px 15px;
+  }
+  
+  .content-wrapper {
+    padding-top: 50px;
+    padding-bottom: 60px;
+  }
+  
+  .hero-content h1 {
+    font-size: 2rem;
+    margin-top: 35vh;
+  }
+  
+  .scroll-down {
+    bottom: 5rem;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .content-section {
+    padding: 30px 10px;
+  }
+  
+  .content-wrapper {
+    padding-top: 40px;
+    padding-bottom: 50px;
+  }
+  
+  .hero-content h1 {
+    font-size: 1.8rem;
+    margin-top: 30vh;
+  }
 }
 </style>

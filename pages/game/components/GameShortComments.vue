@@ -5,15 +5,23 @@
     <!-- 发表短评 -->
     <div class="add-comment-section" v-if="userId">
       <div v-if="!userComment">
-        <el-input
-          type="textarea"
-          :rows="4"
-          placeholder="说说你对这个游戏的看法吧（最多500字）..."
-          v-model="commentContent"
-          :maxlength="500"
-          show-word-limit
-          :disabled="submitting || !hasRated"
-        ></el-input>
+        <div class="comment-input-wrapper" :class="{'disabled': !hasRated}">
+          <el-input
+            type="textarea"
+            :rows="4"
+            placeholder="说说你对这个游戏的看法吧（最多500字）..."
+            v-model="commentContent"
+            :maxlength="500"
+            show-word-limit
+            :disabled="submitting || !hasRated"
+          ></el-input>
+          <div v-if="!hasRated" class="rating-required-overlay">
+            <div class="rating-required-message">
+              <i class="el-icon-warning-outline"></i>
+              请先对游戏进行评分才能发表短评
+            </div>
+          </div>
+        </div>
         <div class="comment-actions">
           <el-tooltip content="请先对游戏评分才能发表短评" placement="top" v-if="!hasRated">
             <el-button type="primary" disabled>发表短评</el-button>
@@ -482,5 +490,47 @@ export default {
 .rating-label {
   color: #606266;
   margin-left: 10px;
+}
+
+.comment-input-wrapper {
+  position: relative;
+}
+
+.disabled {
+  opacity: 0.5;
+}
+
+.rating-required-message {
+  text-align: center;
+  color: #303133;
+  font-size: 16px;
+  background-color: #f0f9eb;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #e1f3d8;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  max-width: 90%;
+}
+
+.rating-required-message i {
+  color: #67c23a;
+  font-size: 22px;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.rating-required-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(2px);
 }
 </style> 

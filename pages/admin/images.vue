@@ -46,7 +46,7 @@
         <div class="image-grid">
           <div v-for="(image, index) in unusedImages" :key="index" class="image-item">
             <div class="image-container">
-              <img :src="`https://aiwujiegal.top/api/common/download/${image}`" alt="未使用的图片">
+              <img :src="`${imageBaseUrl}/${image}`" alt="未使用的图片">
             </div>
             <div class="image-info">
               <div class="image-name">{{ truncateFilename(image) }}</div>
@@ -78,6 +78,7 @@
 
 <script>
 import { getUnusedImagesAPI, cleanupImagesAPI } from '@/api/admin'
+import config from '~/config/index.js'
 
 export default {
   name: 'ImageManagement',
@@ -87,7 +88,8 @@ export default {
       loading: false,
       cleanupLoading: false,
       dialogVisible: false,
-      hasLoaded: false
+      hasLoaded: false,
+      imageBaseUrl: config.imageDownloadUrl
     }
   },
   methods: {

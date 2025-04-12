@@ -7,8 +7,8 @@
     </div>
 
     <!-- 精选文章列表 --> 
-    <el-row :gutter="20">
-      <el-col :span="8" v-for="(article, index) in selectedArticles" :key="index" class="fade-in-element">
+    <el-row :gutter="30">
+      <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-for="(article, index) in selectedArticles" :key="index" class="fade-in-element">
         <!-- 文章卡片 -->
         <el-card class="article-card" shadow="hover" @click.native="$router.push(`/article/${article.id}`)">
           <!-- 文章图片 --> 
@@ -103,9 +103,9 @@ export default {
 }
 
 .featured-articles {
-  max-width: 1400px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px 50px;
   background-color: #f8f9fa;
   border-radius: 12px;
 }
@@ -113,7 +113,7 @@ export default {
 .article-card {
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 25px;
+  margin-bottom: 35px;
   border: none;
   border-radius: 12px;
   overflow: hidden;
@@ -151,7 +151,7 @@ export default {
 }
 
 .article-content {
-  padding: 20px;
+  padding: 24px;
   position: relative;
   flex: 1;
   display: flex;
@@ -178,13 +178,12 @@ export default {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  white-space: nowrap;
-  overflow-x: auto;
-  padding-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .meta-item {
-  margin-right: 15px;
+  margin-right: 0;
   display: flex;
   align-items: center;
 }
@@ -201,7 +200,7 @@ export default {
   line-height: 1.6;
   margin: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -214,13 +213,78 @@ export default {
 }
 
 /* 响应式布局 */
+@media screen and (max-width: 992px) {
+  .featured-articles {
+    padding: 25px 30px;
+  }
+  
+  .article-card {
+    height: 470px;
+  }
+  
+  .article-image {
+    height: 220px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .section {
     padding: 15px;
   }
   
+  .featured-articles {
+    padding: 15px 20px;
+  }
+  
+  .article-image {
+    height: 180px;
+  }
+  
+  .article-card {
+    height: 420px;
+    margin-bottom: 25px;
+  }
+  
+  .article-content {
+    padding: 15px;
+  }
+  
+  .article-content h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  
+  .article-excerpt {
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-line-clamp: 3;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .featured-articles {
+    padding: 12px 15px;
+  }
+  
+  .section-header h2 {
+    font-size: 22px;
+  }
+  
+  .article-card {
+    height: 400px;
+    margin-bottom: 20px;
+  }
+  
   .article-image {
     height: 160px;
+  }
+  
+  .article-meta {
+    font-size: 12px;
+  }
+  
+  .article-content {
+    padding: 12px;
   }
 }
 

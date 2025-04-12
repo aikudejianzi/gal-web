@@ -48,7 +48,7 @@
       <el-form-item label="封面">
         <el-upload
           class="avatar-uploader"
-          action="https://aiwujiegal.top/api/common/upload"
+          :action="config && config.imageUploadUrl ? config.imageUploadUrl : ''"
           :show-file-list="false"
           :on-success="handleCoverSuccess"
           :before-upload="beforeCoverUpload"
@@ -113,6 +113,7 @@
 import Vue from 'vue'
 import { addArticleAPI, getArticleDetailAPI, updateArticleAPI, parseWordDocAPI } from '@/api/article'
 import { getCurrentUserAPI } from '@/api/user'
+import config from '@/config'
 
 // 在客户端才导入编辑器
 let Editor, Toolbar, IToolbarConfig, DomEditor
@@ -146,6 +147,7 @@ export default Vue.extend({
       isEditMode: false, // 是否是编辑模式
       articleId: null, // 文章ID (编辑模式使用)
       userInfo: null, // 用户信息
+      config, // 将config添加到data中确保可访问
       toolbarConfig: {
         // 工具栏排除配置
         excludeKeys: [
@@ -158,7 +160,7 @@ export default Vue.extend({
         MENU_CONF: {
           // 图片上传配置
           uploadImage: {
-            server: 'https://aiwujiegal.top/api/common/upload', // 上传接口地址
+            server: process.client && config ? config.imageUploadUrl : '', // 添加判断防止undefined
             fieldName: 'file', // 上传图片的字段名
             maxFileSize: 5 * 1024 * 1024, // 限制大小，默认5M
             maxNumberOfFiles: 10, // 限制数量
@@ -170,7 +172,7 @@ export default Vue.extend({
               formData.append('file', file)
               
               // 发送上传请求
-              fetch('https://aiwujiegal.top/api/common/upload', {
+              fetch(this.config && this.config.imageUploadUrl ? this.config.imageUploadUrl : '', {
                 method: 'POST',
                 body: formData,
                 credentials: 'include' // 允许携带cookie
@@ -478,24 +480,35 @@ export default Vue.extend({
 
 <style scoped>
 .submit-container {
-  width: 1200px;
+  width: 800px;
   margin: 20px auto;
-  padding: 20px;
-  min-height: 1650px;
+  padding: 10px;
+  min-height: 1200px;
 }
 
 .el-form {
   background: #fff;
-  padding: 30px;
+  padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
-  min-height: 1650px;
+  min-height: 1200px;
+  max-width: 708px;
+  margin: 0 auto;
 }
 
 /* 响应式优化 */
+@media screen and (max-width: 1024px) {
+  .submit-container {
+    width: 90%;
+    max-width: 900px;
+    margin: 15px auto;
+    padding: 15px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .submit-container {
-    width: 100%;
+    width: 95%;
     margin: 15px auto;
     padding: 15px;
   }
@@ -507,12 +520,13 @@ export default Vue.extend({
 
 .editor-container {
   border: 1px solid #ccc;
-  height: calc(1650px - 450px); /* 表单容器高度减去其他元素的总高度 */
+  height: calc(1200px - 350px); /* 减小高度 */
   display: flex;
   flex-direction: column;
   width: 100%;
   margin: 0 auto;
   margin-top: 5px;
+  max-width: 648px;
 }
 
 .editor-content {
@@ -541,8 +555,9 @@ export default Vue.extend({
 
 /* 让表单项也居中对齐 */
 :deep(.el-form-item__content) {
-  max-width: 1000px;
+  max-width: 648px; /* 调整为更合适的宽度 */
   margin: 0 auto !important;
+  width: 100%;
 }
 
 :deep(.el-form-item__label) {
@@ -550,7 +565,21 @@ export default Vue.extend({
   text-align: left;
   margin-bottom: 5px;
   padding: 0;
-  margin-left: calc((100% - 1000px) / 2);
+  margin-left: 0; /* 移除左边距计算 */
+}
+
+/* 确保编辑器中的文本不会溢出容器 */
+:deep(.w-e-text-container) {
+  overflow: hidden;
+}
+
+:deep(.w-e-text) {
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+:deep(.w-e-text-container [data-slate-editor]) {
+  padding: 0 15px;
 }
 
 :deep(.avatar-uploader .el-upload) {

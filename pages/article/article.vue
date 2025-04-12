@@ -26,6 +26,7 @@ import { getArticleDetailAPI, increaseViewCountAPI } from '@/api/article'
 import { getArticleCommentListAPI, addCommentAPI, deleteCommentAPI } from '@/api/comment'
 import { checkIsFavoriteAPI, toggleFavoriteAPI } from '@/api/favorite'
 import { getCurrentUserAPI } from '@/api/user'
+import config from '~/config/index.js'
 
 export default {
   name: 'Article',
@@ -37,6 +38,32 @@ export default {
     // 确保文章数据存在
     if (!this.article) {
       return {}
+    }
+
+    const articleStructuredData = {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": this.article ? this.article.title : '',
+      "description": this.article ? this.article.summary : '',
+      "image": this.article && this.article.coverImage ? `${config.domain}${this.article.coverImage}` : `${config.domain}${config.defaultImages.articleCover}`,
+      "datePublished": this.article ? this.article.createTime : '',
+      "dateModified": this.article ? this.article.updateTime : '',
+      "author": {
+        "@type": "Person",
+        "name": this.article ? this.article.authorName : '',
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "兰州大学GalGame同好会",
+        "logo": {
+          "@type": "ImageObject",
+          "url": `${config.domain}${config.defaultImages.logo}`
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": `${config.domain}/article/${this.article.id}`
+      }
     }
 
     return {
@@ -51,28 +78,7 @@ export default {
       script: [
         {
           type: 'application/ld+json',
-          json: {
-            "@context": "https://schema.org",
-            "@type": "Article",
-            "headline": this.article.title,
-            "image": this.article.coverImage ? `https://aiwujiegal.top${this.article.coverImage}` : 'https://aiwujiegal.top/default-article-cover.png',
-            "author": {
-              "@type": "Person",
-              "name": this.article.authorName
-            },
-            "publisher": {
-              "@type": "Organization",
-              "name": "兰州大学Galgame同好会",
-              "logo": {
-                "@type": "ImageObject",
-                "url": "https://aiwujiegal.top/logo.png"
-              }
-            },
-            "datePublished": this.article.createTime,
-            "dateModified": this.article.updateTime || this.article.createTime,
-            "description": this.article.summary || this.article.content.substring(0, 150),
-            "url": `https://aiwujiegal.top/article/${this.article.id}`
-          }
+          json: articleStructuredData
         }
       ]
     }
@@ -211,16 +217,25 @@ export default {
 
 <style scoped>
 .article-detail-container {
-  width: 1200px;
+  width: 708px;
   margin: 20px auto;
   padding: 20px;
   box-sizing: border-box;
 }
 
 /* 响应式优化 */
+@media screen and (max-width: 1024px) {
+  .article-detail-container {
+    width: 90%;
+    max-width: 708px;
+    margin: 15px auto;
+    padding: 15px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .article-detail-container {
-    width: 100%;
+    width: 95%;
     margin: 15px auto;
     padding: 15px;
   }

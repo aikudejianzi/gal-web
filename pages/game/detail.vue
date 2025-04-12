@@ -61,6 +61,7 @@ import GameCharacters from './components/GameCharacters.vue'
 import GamePersons from './components/GamePersons.vue'
 import GameShortComments from './components/GameShortComments.vue'
 import GameRatingChart from './components/GameRatingChart.vue'
+import config from '~/config/index.js'
 
 export default {
   name: 'GameDetail',
@@ -173,6 +174,22 @@ export default {
       return {}
     }
 
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": this.gameInfo ? this.gameInfo.title : '', 
+      "description": this.gameInfo ? this.gameInfo.description : '',
+      "image": this.gameInfo && this.gameInfo.coverImage ? `${config.domain}${this.gameInfo.coverImage}` : `${config.domain}${config.defaultImages.gameCover}`,
+      "genre": this.gameInfo && this.gameInfo.categories ? this.gameInfo.categories.map(cat => cat.name).join(', ') : "",
+      "datePublished": this.gameInfo ? this.gameInfo.releaseDate : '',
+      "url": `${config.domain}/game/${this.gameInfo.id}`,
+      "aggregateRating": this.gameInfo.rating ? {
+        "@type": "AggregateRating",
+        "ratingValue": this.gameInfo.rating,
+        "ratingCount": this.gameInfo.ratingCount || 0
+      } : undefined
+    }
+
     return {
       title: `${this.gameInfo.nameCn || this.gameInfo.name} - GalGame同好会`,
       meta: [
@@ -185,25 +202,7 @@ export default {
       script: [
         {
           type: 'application/ld+json',
-          json: {
-            "@context": "https://schema.org",
-            "@type": "VideoGame",
-            "name": this.gameInfo.name,
-            "image": this.gameInfo.coverImage ? `https://aiwujiegal.top${this.gameInfo.coverImage}` : 'https://aiwujiegal.top/default-game-cover.png',
-            "description": this.gameInfo.description || this.gameInfo.summary,
-            "genre": this.gameInfo.genres || ["视觉小说", "Galgame"],
-            "publisher": {
-              "@type": "Organization",
-              "name": this.gameInfo.publisher
-            },
-            "releaseDate": this.gameInfo.releaseDate,
-            "url": `https://aiwujiegal.top/game/${this.gameInfo.id}`,
-            "aggregateRating": this.gameInfo.rating ? {
-              "@type": "AggregateRating",
-              "ratingValue": this.gameInfo.rating,
-              "ratingCount": this.gameInfo.ratingCount || 0
-            } : undefined
-          }
+          json: structuredData
         }
       ]
     }

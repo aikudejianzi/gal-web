@@ -153,6 +153,11 @@ const CATEGORY_MAP = {
 };
 
 export default {
+  name: 'ArticleIndex', // 添加名称以便于keep-alive匹配
+  
+  // 启用数据缓存
+  fetchOnServer: false, // 仅在客户端获取数据，避免服务端和客户端状态不一致
+  
   data () {
     return {
       // 文章列表
@@ -193,7 +198,10 @@ export default {
         {value: '1', label: '最多阅读'},
         {value: '2', label: '最多评论'},
         {value: '3', label: '最多收藏'}
-      ]
+      ],
+      
+      // 首次加载标记
+      isFirstLoad: true
     }
   },
 
@@ -244,7 +252,19 @@ export default {
   async mounted() {
     if (process.client) {
       await this.fetchUserInfo();
+      
+      // 仅在首次加载时获取文章列表
+      if (this.isFirstLoad) {
+        await this.getArticleList();
+        this.isFirstLoad = false;
+      }
     }
+  },
+  
+  // keep-alive激活时调用
+  activated() {
+    // 页面被重新激活时，不需要重新加载数据
+    console.log('文章列表页面被激活，保持当前页码:', this.listQuery.page);
   },
 
   methods: {

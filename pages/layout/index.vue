@@ -41,4 +41,11 @@ export default {
   flex: 1;
   padding: 20px;
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .main-content {
+    padding: 15px 10px;
+  }
+}
 </style>
